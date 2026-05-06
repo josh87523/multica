@@ -1,14 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { createTestApi, loginAsDefault } from "./helpers";
+import { createTestApi, e2eIdentity, loginAsDefault } from "./helpers";
 import type { TestApiClient } from "./fixtures";
 
 test.describe("Comments", () => {
   let api: TestApiClient;
 
-  test.beforeEach(async ({ page }) => {
-    api = await createTestApi();
+  test.beforeEach(async ({ page }, testInfo) => {
+    const identity = e2eIdentity(testInfo);
+    api = await createTestApi(identity);
     await api.createIssue("E2E Comment Test " + Date.now());
-    await loginAsDefault(page);
+    await loginAsDefault(page, identity);
   });
 
   test.afterEach(async () => {

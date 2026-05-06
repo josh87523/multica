@@ -65,7 +65,7 @@ func fakeKimiACPScript() string {
 #
 # Writes the full argv (one arg per line) to $KIMI_ARGS_FILE if that env
 # var is set, so tests can assert that the daemon invokes us with the
-# right flags (`+"`--yolo acp`"+`, not bare `+"`acp`"+`).
+# right flags (--yolo acp, not bare acp).
 #
 # Then reads one JSON-RPC request per line from stdin, matches on the
 # method name, and writes back a canned response. Exits after set_model
@@ -100,8 +100,6 @@ done
 // upstream error — not claim success while actually running on the
 // default model.
 func TestKimiBackendSetModelFailureFailsTask(t *testing.T) {
-	t.Parallel()
-
 	fakePath := filepath.Join(t.TempDir(), "kimi")
 	writeTestExecutable(t, fakePath, []byte(fakeKimiACPScript()))
 
@@ -115,7 +113,7 @@ func TestKimiBackendSetModelFailureFailsTask(t *testing.T) {
 
 	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{
 		Model:   "bogus-model",
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
@@ -157,8 +155,6 @@ func TestKimiBackendSetModelFailureFailsTask(t *testing.T) {
 // auto-approves session/request_permission. This test catches
 // accidental re-introduction of the dead flag.
 func TestKimiBackendInvokesACPSubcommand(t *testing.T) {
-	t.Parallel()
-
 	tempDir := t.TempDir()
 	argsFile := filepath.Join(tempDir, "argv.txt")
 	fakePath := filepath.Join(tempDir, "kimi")
@@ -180,7 +176,7 @@ func TestKimiBackendInvokesACPSubcommand(t *testing.T) {
 	// have to wait for the prompt branch. We only care about argv here.
 	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{
 		Model:   "bogus-model",
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	})
 	if err != nil {
 		t.Fatalf("execute: %v", err)

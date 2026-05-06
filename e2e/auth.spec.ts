@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAsDefault, openWorkspaceMenu } from "./helpers";
+import { e2eIdentity, loginAsDefault, openWorkspaceMenu } from "./helpers";
 
 test.describe("Authentication", () => {
   test("login page renders correctly", async ({ page }) => {
@@ -13,8 +13,8 @@ test.describe("Authentication", () => {
     );
   });
 
-  test("login and redirect to /issues", async ({ page }) => {
-    await loginAsDefault(page);
+  test("login and redirect to /issues", async ({ page }, testInfo) => {
+    await loginAsDefault(page, e2eIdentity(testInfo));
 
     await expect(page).toHaveURL(/\/issues/);
     await expect(page.locator("text=All Issues")).toBeVisible();
@@ -33,8 +33,8 @@ test.describe("Authentication", () => {
     await page.waitForURL("**/login", { timeout: 10000 });
   });
 
-  test("logout redirects to /login", async ({ page }) => {
-    await loginAsDefault(page);
+  test("logout redirects to /login", async ({ page }, testInfo) => {
+    await loginAsDefault(page, e2eIdentity(testInfo));
 
     // Open the workspace dropdown menu
     await openWorkspaceMenu(page);

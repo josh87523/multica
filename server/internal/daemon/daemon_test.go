@@ -710,7 +710,7 @@ func TestExecuteAndDrain_CodexInactivityReportsToolResultTranscript(t *testing.T
 	}
 	d := &Daemon{client: NewClient(srv.URL), logger: slog.Default()}
 	result, tools, err := d.executeAndDrain(context.Background(), backend, "prompt", agent.ExecOptions{
-		Timeout:                   5 * time.Second,
+		Timeout:                   10 * time.Second,
 		SemanticInactivityTimeout: 100 * time.Millisecond,
 	}, slog.Default(), "task-stale")
 	if err != nil {

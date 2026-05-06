@@ -1356,7 +1356,11 @@ func (h *Handler) UpdateIssue(w http.ResponseWriter, r *http.Request) {
 		params.Title = pgtype.Text{String: *req.Title, Valid: true}
 	}
 	if req.Description != nil {
-		params.Description = pgtype.Text{String: *req.Description, Valid: true}
+		description := *req.Description
+		if workspaceControlBound {
+			description = preserveWorkspaceControlMarker(description, workspaceControlBinding)
+		}
+		params.Description = pgtype.Text{String: description, Valid: true}
 	}
 	if req.Status != nil {
 		params.Status = pgtype.Text{String: *req.Status, Valid: true}
@@ -1797,7 +1801,11 @@ func (h *Handler) BatchUpdateIssues(w http.ResponseWriter, r *http.Request) {
 			params.Title = pgtype.Text{String: *req.Updates.Title, Valid: true}
 		}
 		if req.Updates.Description != nil {
-			params.Description = pgtype.Text{String: *req.Updates.Description, Valid: true}
+			description := *req.Updates.Description
+			if workspaceControlBound {
+				description = preserveWorkspaceControlMarker(description, workspaceControlBinding)
+			}
+			params.Description = pgtype.Text{String: description, Valid: true}
 		}
 		if req.Updates.Status != nil {
 			params.Status = pgtype.Text{String: *req.Updates.Status, Valid: true}

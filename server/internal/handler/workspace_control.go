@@ -19,6 +19,11 @@ import (
 
 var workspaceSourceIDRE = regexp.MustCompile(`<!--\s*workspace-source-id:\s*([^>\n]+?)\s*-->`)
 
+const (
+	workspaceControlDispatchAttempts = 3
+	workspaceControlRetryBaseDelay   = 50 * time.Millisecond
+)
+
 type WorkspaceControlState struct {
 	SourceType string   `json:"source_type"`
 	SourceID   string   `json:"source_id"`
@@ -69,6 +74,19 @@ func parseWorkspaceControlBinding(description pgtype.Text) (workspaceControlBind
 		Writable:   sourceType == "device" || sourceType == "md",
 	}
 	return binding, true
+}
+
+func workspaceControlMarker(binding workspaceControlBinding) string {
+	return "<!-- workspace-source-id: " + binding.SourceID + " -->"
+}
+
+func preserveWorkspaceControlMarker(description string, binding workspaceControlBinding) string {
+	marker := workspaceControlMarker(binding)
+	description = workspaceSourceIDRE.ReplaceAllString(description, "")
+	if strings.TrimSpace(description) == "" {
+		return marker
+	}
+	return strings.TrimRight(description, "\n") + "\n\n" + marker
 }
 
 func workspaceControlProtectedFields(raw map[string]json.RawMessage) []string {
@@ -256,29 +274,38 @@ func (h *Handler) dispatchWorkspaceControlMutation(ctx context.Context, mutation
 		"fields":      fields,
 		"payload":     payload,
 	})
-	reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, webhookURL, bytes.NewReader(body))
-	if err != nil {
-		h.markWorkspaceControlMutationFailed(ctx, mutationID, err.Error())
-		return
+	var lastErr string
+	for attempt := 1; attempt <= workspaceControlDispatchAttempts; attempt++ {
+		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, webhookURL, bytes.NewReader(body))
+		if err != nil {
+			cancel()
+			lastErr = err.Error()
+		} else {
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				lastErr = err.Error()
+			} else {
+				resp.Body.Close()
+				if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+					cancel()
+					_, _ = h.DB.Exec(ctx, `
+						UPDATE workspace_control_mutation
+						SET status = 'applied', error = NULL, applied_at = now(), updated_at = now()
+						WHERE id = $1
+					`, parseUUID(mutationID))
+					return
+				}
+				lastErr = resp.Status
+			}
+			cancel()
+		}
+		if attempt < workspaceControlDispatchAttempts {
+			time.Sleep(time.Duration(attempt) * workspaceControlRetryBaseDelay)
+		}
 	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		h.markWorkspaceControlMutationFailed(ctx, mutationID, err.Error())
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		h.markWorkspaceControlMutationFailed(ctx, mutationID, resp.Status)
-		return
-	}
-	_, _ = h.DB.Exec(ctx, `
-		UPDATE workspace_control_mutation
-		SET status = 'applied', error = NULL, applied_at = now(), updated_at = now()
-		WHERE id = $1
-	`, parseUUID(mutationID))
+	h.markWorkspaceControlMutationFailed(ctx, mutationID, lastErr)
 }
 
 func (h *Handler) markWorkspaceControlMutationFailed(ctx context.Context, mutationID string, message string) {

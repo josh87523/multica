@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -79,6 +81,97 @@ func TestWorkspaceControlWritableSourceUpdateEnqueuesPendingMutation(t *testing.
 	}
 	if status != "pending" {
 		t.Fatalf("expected pending mutation, got %q", status)
+	}
+}
+
+func TestWorkspaceControlDescriptionUpdatePreservesBindingMarker(t *testing.T) {
+	issueID := createTestIssueWithDescription(t, "WC marker", "<!-- workspace-source-id: device:task-1 -->")
+	t.Cleanup(func() { deleteTestIssueDirect(t, issueID) })
+
+	w := httptest.NewRecorder()
+	req := newRequest("PUT", "/api/issues/"+issueID, map[string]any{"description": "human edited description"})
+	req = withURLParam(req, "id", issueID)
+	testHandler.UpdateIssue(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	var resp IssueResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.Description == nil || !workspaceSourceIDRE.MatchString(*resp.Description) {
+		t.Fatalf("expected preserved workspace marker, got %#v", resp.Description)
+	}
+	if resp.WorkspaceControl == nil || resp.WorkspaceControl.SourceID != "device:task-1" {
+		t.Fatalf("expected workspace control binding after description update, got %#v", resp.WorkspaceControl)
+	}
+}
+
+func TestWorkspaceControlDescriptionUpdateCannotSwapBindingMarker(t *testing.T) {
+	issueID := createTestIssueWithDescription(t, "WC marker swap", "<!-- workspace-source-id: device:task-1 -->")
+	t.Cleanup(func() { deleteTestIssueDirect(t, issueID) })
+
+	w := httptest.NewRecorder()
+	req := newRequest("PUT", "/api/issues/"+issueID, map[string]any{"description": "human edited description\n<!-- workspace-source-id: md:tasks/other.md -->"})
+	req = withURLParam(req, "id", issueID)
+	testHandler.UpdateIssue(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	var resp IssueResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.WorkspaceControl == nil || resp.WorkspaceControl.SourceID != "device:task-1" {
+		t.Fatalf("expected original workspace control binding, got %#v", resp.WorkspaceControl)
+	}
+	if resp.Description != nil && strings.Contains(*resp.Description, "md:tasks/other.md") {
+		t.Fatalf("expected swapped workspace marker to be stripped, got %q", *resp.Description)
+	}
+}
+
+func TestWorkspaceControlWebhookRetryAppliesTransientFailure(t *testing.T) {
+	var calls atomic.Int32
+	webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if calls.Add(1) == 1 {
+			http.Error(w, "temporary workspace source failure", http.StatusBadGateway)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	t.Cleanup(webhook.Close)
+	t.Setenv("MULTICA_WORKSPACE_CONTROL_WEBHOOK_URL", webhook.URL)
+
+	issueID := createTestIssueWithDescription(t, "WC retry", "<!-- workspace-source-id: md:tasks/task-1.md -->")
+	t.Cleanup(func() { deleteTestIssueDirect(t, issueID) })
+
+	w := httptest.NewRecorder()
+	req := newRequest("PUT", "/api/issues/"+issueID, map[string]any{"priority": "high"})
+	req = withURLParam(req, "id", issueID)
+	testHandler.UpdateIssue(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		var status string
+		err := testPool.QueryRow(context.Background(), `
+			SELECT status FROM workspace_control_mutation WHERE issue_id = $1 ORDER BY created_at DESC LIMIT 1
+		`, issueID).Scan(&status)
+		if err != nil {
+			t.Fatalf("expected workspace control mutation row: %v", err)
+		}
+		if status == "applied" {
+			if calls.Load() < 2 {
+				t.Fatalf("expected retry call, got %d", calls.Load())
+			}
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("expected applied mutation after retry, last status %q", status)
+		}
+		time.Sleep(25 * time.Millisecond)
 	}
 }
 

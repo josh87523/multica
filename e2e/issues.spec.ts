@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { loginAsDefault, createTestApi } from "./helpers";
+import { loginAsDefault, createTestApi, e2eIdentity } from "./helpers";
 import type { TestApiClient } from "./fixtures";
 
 test.describe("Issues", () => {
@@ -14,9 +14,10 @@ test.describe("Issues", () => {
     }
   }
 
-  test.beforeEach(async ({ page }) => {
-    api = await createTestApi();
-    await loginAsDefault(page);
+  test.beforeEach(async ({ page }, testInfo) => {
+    const identity = e2eIdentity(testInfo);
+    api = await createTestApi(identity);
+    await loginAsDefault(page, identity);
   });
 
   test.afterEach(async () => {

@@ -179,6 +179,11 @@ export function BoardView({
     })
   );
 
+  const hiddenIssueCount = useMemo(
+    () => issues.filter((issue) => hiddenStatuses.includes(issue.status)).length,
+    [issues, hiddenStatuses],
+  );
+
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       isDraggingRef.current = true;
@@ -299,6 +304,7 @@ export function BoardView({
         {hiddenStatuses.length > 0 && (
           <HiddenColumnsPanel
             hiddenStatuses={hiddenStatuses}
+            hiddenIssueCount={hiddenIssueCount}
             myIssuesOpts={myIssuesOpts}
           />
         )}
@@ -353,9 +359,11 @@ function PaginatedBoardColumn({
 
 function HiddenColumnsPanel({
   hiddenStatuses,
+  hiddenIssueCount,
   myIssuesOpts,
 }: {
   hiddenStatuses: IssueStatus[];
+  hiddenIssueCount: number;
   myIssuesOpts?: { scope: string; filter: MyIssuesFilter };
 }) {
   const { t } = useT("issues");
@@ -363,7 +371,7 @@ function HiddenColumnsPanel({
     <div className="flex w-[240px] shrink-0 flex-col">
       <div className="mb-2 flex items-center gap-2 px-1">
         <span className="text-sm font-medium text-muted-foreground">
-          {t(($) => $.board.hidden_columns_label)}
+          {t(($) => $.board.hidden_columns_label_with_count, { count: hiddenIssueCount })}
         </span>
       </div>
       <div className="flex-1 space-y-0.5">
