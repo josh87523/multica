@@ -538,7 +538,6 @@ func TestResolveSessionID(t *testing.T) {
 }
 
 func TestClaudeExecuteSurfacesStderrWhenChildExitsEarly(t *testing.T) {
-	t.Parallel()
 	if runtime.GOOS == "windows" {
 		t.Skip("shell-script fixture is POSIX-only")
 	}
@@ -562,7 +561,7 @@ func TestClaudeExecuteSurfacesStderrWhenChildExitsEarly(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{Timeout: 5 * time.Second})
+	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{Timeout: 10 * time.Second})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}

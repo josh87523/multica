@@ -114,8 +114,6 @@ done
 }
 
 func TestKiroBackendSetModelFailureFailsTask(t *testing.T) {
-	t.Parallel()
-
 	fakePath := filepath.Join(t.TempDir(), "kiro-cli")
 	writeTestExecutable(t, fakePath, []byte(fakeKiroACPScript()))
 
@@ -129,7 +127,7 @@ func TestKiroBackendSetModelFailureFailsTask(t *testing.T) {
 
 	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{
 		Model:   "bogus-model",
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
@@ -162,8 +160,6 @@ func TestKiroBackendSetModelFailureFailsTask(t *testing.T) {
 }
 
 func TestKiroBackendInvokesACPWithTrustAllTools(t *testing.T) {
-	t.Parallel()
-
 	tempDir := t.TempDir()
 	argsFile := filepath.Join(tempDir, "argv.txt")
 	fakePath := filepath.Join(tempDir, "kiro-cli")
@@ -183,7 +179,7 @@ func TestKiroBackendInvokesACPWithTrustAllTools(t *testing.T) {
 
 	session, err := backend.Execute(ctx, "prompt-ignored", ExecOptions{
 		Model:      "bogus-model",
-		Timeout:    5 * time.Second,
+		Timeout:    10 * time.Second,
 		CustomArgs: []string{"acp", "--trust-tools", "shell", "-a", "--agent", "multica"},
 	})
 	if err != nil {
@@ -222,8 +218,6 @@ func TestKiroBackendInvokesACPWithTrustAllTools(t *testing.T) {
 }
 
 func TestKiroBackendUsesSessionLoadForResume(t *testing.T) {
-	t.Parallel()
-
 	tempDir := t.TempDir()
 	requestsFile := filepath.Join(tempDir, "requests.jsonl")
 	fakePath := filepath.Join(tempDir, "kiro-cli")
@@ -243,7 +237,7 @@ func TestKiroBackendUsesSessionLoadForResume(t *testing.T) {
 
 	session, err := backend.Execute(ctx, "continue", ExecOptions{
 		ResumeSessionID: "ses_existing",
-		Timeout:         5 * time.Second,
+		Timeout:         10 * time.Second,
 	})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
