@@ -388,6 +388,44 @@ describe("IssuesPage (shared)", () => {
     expect(screen.getByText("Write tests")).toBeInTheDocument();
   });
 
+  it("renders Workspace issue problem summary instead of raw markdown on cards", async () => {
+    const workspaceIssue: Issue = {
+      ...mockIssues[0]!,
+      id: "issue-workspace-summary",
+      title: "AI 开发闭环存在遗留问题：共享上下文",
+      description: [
+        "<!-- workspace-source-id: ledger:task-1 -->",
+        "",
+        "## 问题",
+        "线上真实运行目录还没有回归。",
+        "",
+        "## 原因",
+        "闭环检查没有通过。",
+        "",
+        "## 处理方案",
+        "补跑 live-path regression。",
+      ].join("\n"),
+      workspace_control: {
+        source_type: "ledger-milestone",
+        source_id: "ledger:task-1",
+        writable: false,
+      },
+    };
+    mockListIssues.mockImplementation((params: any) =>
+      Promise.resolve({
+        issues: [workspaceIssue].filter((i) => i.status === params?.status),
+        total: [workspaceIssue].filter((i) => i.status === params?.status).length,
+      }),
+    );
+
+    renderWithQuery(<IssuesPage />);
+
+    await screen.findByText("闭环缺口：线上真实运行目录还没有回归。");
+    expect(screen.getByText("线上真实运行目录还没有回归。")).toBeInTheDocument();
+    expect(screen.queryByText("AI 开发闭环存在遗留问题：共享上下文")).not.toBeInTheDocument();
+    expect(screen.queryByText(/workspace-source-id/)).not.toBeInTheDocument();
+  });
+
   it("renders board column headers", async () => {
     mockListIssues.mockImplementation((params: any) =>
       Promise.resolve({

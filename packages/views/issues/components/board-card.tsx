@@ -11,6 +11,7 @@ import { CalendarDays } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useUpdateIssue } from "@multica/core/issues/mutations";
+import { issueCardDescription, issueDisplayTitle } from "@multica/core/issues/business-summary";
 import { issueWorkspaceControlWritable } from "@multica/core/issues/workspace-control";
 import { useWorkspacePaths } from "@multica/core/paths";
 import { useWorkspaceId } from "@multica/core/hooks";
@@ -67,6 +68,8 @@ export const BoardCardContent = memo(function BoardCardContent({
   const labels = issue.labels ?? [];
   const workspaceControl = issue.workspace_control;
   const canEditWorkspaceSource = issueWorkspaceControlWritable(issue);
+  const cardDescription = issueCardDescription(issue);
+  const displayTitle = issueDisplayTitle(issue);
 
   const updateIssueMutation = useUpdateIssue();
   const handleUpdate = useCallback(
@@ -80,7 +83,7 @@ export const BoardCardContent = memo(function BoardCardContent({
   );
 
   const showPriority = storeProperties.priority;
-  const showDescription = storeProperties.description && issue.description;
+  const showDescription = storeProperties.description && cardDescription;
   const showAssignee = storeProperties.assignee && issue.assignee_type && issue.assignee_id;
   const showDueDate = storeProperties.dueDate && issue.due_date;
   const showProject = storeProperties.project && project;
@@ -111,7 +114,7 @@ export const BoardCardContent = memo(function BoardCardContent({
 
       {/* Row 2: Title */}
       <p className="mt-1 text-sm font-medium leading-snug line-clamp-2">
-        {issue.title}
+        {displayTitle}
       </p>
 
       {/* Sub-issue progress + project + labels */}
@@ -140,7 +143,7 @@ export const BoardCardContent = memo(function BoardCardContent({
       {/* Description */}
       {showDescription && (
         <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
-          {issue.description}
+          {cardDescription}
         </p>
       )}
 

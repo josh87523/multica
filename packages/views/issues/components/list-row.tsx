@@ -6,6 +6,7 @@ import { AppLink } from "../../navigation";
 import type { Issue } from "@multica/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useIssueSelectionStore } from "@multica/core/issues/stores/selection-store";
+import { issueCardDescription, issueDisplayTitle } from "@multica/core/issues/business-summary";
 import { useWorkspacePaths } from "@multica/core/paths";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { useViewStore } from "@multica/core/issues/stores/view-store-context";
@@ -53,11 +54,13 @@ export const ListRow = memo(function ListRow({
   const showDueDate = storeProperties.dueDate && issue.due_date;
   const showLabels = storeProperties.labels && labels.length > 0;
   const workspaceControl = issue.workspace_control;
+  const rowDescription = issueCardDescription(issue);
+  const displayTitle = issueDisplayTitle(issue);
 
   return (
     <IssueActionsContextMenu issue={issue}>
       <div
-        className={`group/row flex h-9 items-center gap-2 px-4 text-sm transition-colors hover:not-data-[popup-open]:bg-accent/60 data-[popup-open]:bg-accent ${
+        className={`group/row flex min-h-11 items-center gap-2 px-4 py-1.5 text-sm transition-colors hover:not-data-[popup-open]:bg-accent/60 data-[popup-open]:bg-accent ${
           selected ? "bg-accent/30" : ""
         }`}
       >
@@ -83,7 +86,14 @@ export const ListRow = memo(function ListRow({
             {issue.identifier}
           </span>
           <span className="flex min-w-0 flex-1 items-center gap-1.5">
-            <span className="truncate">{issue.title}</span>
+            <span className="flex min-w-0 flex-1 flex-col justify-center">
+              <span className="truncate">{displayTitle}</span>
+              {storeProperties.description && rowDescription && (
+                <span className="truncate text-[11px] leading-4 text-muted-foreground">
+                  {rowDescription}
+                </span>
+              )}
+            </span>
             {(workspaceControl?.status || workspaceControl?.source_id) && (
               <span
                 className={`inline-flex shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium ${
