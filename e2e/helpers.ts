@@ -19,8 +19,14 @@ function stableHash(input: string): string {
 }
 
 export function e2eIdentity(testInfo: TestInfo): E2EIdentity {
+  const titlePath =
+    typeof testInfo.titlePath === "function"
+      ? testInfo.titlePath()
+      : Array.isArray(testInfo.titlePath)
+        ? testInfo.titlePath
+        : [testInfo.title];
   const raw = [
-    ...testInfo.titlePath(),
+    ...titlePath,
     `worker-${testInfo.workerIndex}`,
     `parallel-${testInfo.parallelIndex}`,
   ].join("-");
