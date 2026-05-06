@@ -1,0 +1,72 @@
+---
+title: Workspace control operations
+description: Operational notes for the owned Workspace control fork and issue write-back adapter.
+---
+
+## Repository surface
+
+The owned repository is `josh87523/multica`. The original `multica-ai/multica`
+repository is treated as `upstream` and is not the deployment or closure
+surface for Workspace control work.
+
+The first imported Workspace control adapter snapshot is tagged:
+
+| Tag | Commit | Purpose |
+| --- | --- | --- |
+| `workspace-control-import-20260506` | `e8577c49eeb89faeb4b27622acae668e06134884` | Owned `main` snapshot after merging the Workspace control adapter import. |
+
+## Import scope
+
+The import that introduced Workspace control also carried upstream changes that
+were already present before the adapter branch was merged. When debugging a
+regression from this snapshot, split triage into:
+
+- Workspace control adapter files: `server/internal/handler/workspace_control.go`,
+  `server/internal/handler/issue.go`, `server/migrations/069_*`,
+  `packages/core/issues/workspace-control.ts`, and issue board/list UI files.
+- Upstream-import files: docs, landing copy, chat copy helpers, agent live card,
+  activity handler, and other files that came from the upstream mainline before
+  the adapter merge.
+
+## Runtime status
+
+There is currently no owned production runtime or launchd release entrypoint for
+`josh87523/multica`. Local self-host validation and GitHub end-state checks are
+valid for merge closure, but they are not proof that an online runtime is
+consuming the commit.
+
+Before calling this adapter "online", add a runtime contract with:
+
+- an immutable source commit or image digest,
+- a health endpoint,
+- a version endpoint that returns the source commit,
+- migration status visibility, and
+- a rollback path.
+
+Tracking issue: `josh87523/multica#3`.
+
+## Workspace source marker
+
+Workspace-bound issues use a Markdown marker:
+
+```md
+<!-- workspace-source-id: device:example -->
+```
+
+The server preserves this marker when a writable Workspace-bound issue
+description is edited. Do not strip or rewrite it in clients, importers, or
+Markdown cleanup jobs. A missing marker turns the issue into a native Multica
+issue from the policy layer's perspective.
+
+## Write-back retry behavior
+
+When `MULTICA_WORKSPACE_CONTROL_WEBHOOK_URL` is configured, write-back dispatch
+is asynchronous and retried briefly before the mutation is marked
+`apply-failed`. A `pending` or `apply-failed` row is not a UI-blocking error;
+it is an operations signal that the source adapter still needs reconciliation.
+
+The next larger step is a durable reconciler with exponential backoff and a
+manual retry action. That is intentionally separate from the current minimal
+adapter.
+
+Tracking issue: `josh87523/multica#4`.

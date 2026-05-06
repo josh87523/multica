@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { loginAsDefault, openWorkspaceMenu } from "./helpers";
+import { e2eIdentity, loginAsDefault, openWorkspaceMenu } from "./helpers";
 
 test.describe("Settings", () => {
   test("updating workspace name reflects in sidebar immediately", async ({
     page,
-  }) => {
-    await loginAsDefault(page);
+  }, testInfo) => {
+    await loginAsDefault(page, e2eIdentity(testInfo));
 
     // Read the current workspace name from the sidebar
     const sidebarName = page.locator("aside button").first();

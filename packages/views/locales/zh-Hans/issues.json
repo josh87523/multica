@@ -80,6 +80,7 @@
   },
   "board": {
     "hidden_columns_label": "隐藏的列",
+    "hidden_columns_label_with_count": "隐藏的列（{{count}}）",
     "hide_column": "隐藏列",
     "show_column": "显示列",
     "add_issue_tooltip": "新建 issue",

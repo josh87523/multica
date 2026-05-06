@@ -1,9 +1,37 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, type TestInfo } from "@playwright/test";
 import { TestApiClient } from "./fixtures";
 
 const DEFAULT_E2E_NAME = "E2E User";
-const DEFAULT_E2E_EMAIL = "e2e@multica.ai";
-const DEFAULT_E2E_WORKSPACE = "e2e-workspace";
+
+export interface E2EIdentity {
+  email: string;
+  name: string;
+  workspaceName: string;
+  workspaceSlug: string;
+}
+
+function stableHash(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+export function e2eIdentity(testInfo: TestInfo): E2EIdentity {
+  const raw = [
+    ...testInfo.titlePath(),
+    `worker-${testInfo.workerIndex}`,
+    `parallel-${testInfo.parallelIndex}`,
+  ].join("-");
+  const suffix = stableHash(raw);
+  return {
+    email: `e2e+${suffix}@multica.ai`,
+    name: DEFAULT_E2E_NAME,
+    workspaceName: `E2E Workspace ${suffix}`,
+    workspaceSlug: `e2e-workspace-${suffix}`,
+  };
+}
 
 /**
  * Log in as the default E2E user and ensure the workspace exists first.
@@ -12,12 +40,12 @@ const DEFAULT_E2E_WORKSPACE = "e2e-workspace";
  *
  * Returns the E2E workspace slug so callers can build workspace-scoped URLs.
  */
-export async function loginAsDefault(page: Page): Promise<string> {
+export async function loginAsDefault(page: Page, identity: E2EIdentity): Promise<string> {
   const api = new TestApiClient();
-  await api.login(DEFAULT_E2E_EMAIL, DEFAULT_E2E_NAME);
+  await api.login(identity.email, identity.name);
   const workspace = await api.ensureWorkspace(
-    "E2E Workspace",
-    DEFAULT_E2E_WORKSPACE,
+    identity.workspaceName,
+    identity.workspaceSlug,
   );
 
   const token = api.getToken();
@@ -38,10 +66,10 @@ export async function loginAsDefault(page: Page): Promise<string> {
  * Create a TestApiClient logged in as the default E2E user.
  * Call api.cleanup() in afterEach to remove test data created during the test.
  */
-export async function createTestApi(): Promise<TestApiClient> {
+export async function createTestApi(identity: E2EIdentity): Promise<TestApiClient> {
   const api = new TestApiClient();
-  await api.login(DEFAULT_E2E_EMAIL, DEFAULT_E2E_NAME);
-  await api.ensureWorkspace("E2E Workspace", DEFAULT_E2E_WORKSPACE);
+  await api.login(identity.email, identity.name);
+  await api.ensureWorkspace(identity.workspaceName, identity.workspaceSlug);
   return api;
 }
 

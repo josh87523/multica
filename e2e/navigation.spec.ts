@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { loginAsDefault, openWorkspaceMenu } from "./helpers";
+import { e2eIdentity, loginAsDefault, openWorkspaceMenu } from "./helpers";
 
 test.describe("Navigation", () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsDefault(page);
+  test.beforeEach(async ({ page }, testInfo) => {
+    await loginAsDefault(page, e2eIdentity(testInfo));
   });
 
   test("sidebar navigation works", async ({ page }) => {

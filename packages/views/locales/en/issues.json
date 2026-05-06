@@ -81,6 +81,7 @@
   },
   "board": {
     "hidden_columns_label": "Hidden columns",
+    "hidden_columns_label_with_count": "Hidden columns ({{count}})",
     "hide_column": "Hide column",
     "show_column": "Show column",
     "add_issue_tooltip": "Add issue",
