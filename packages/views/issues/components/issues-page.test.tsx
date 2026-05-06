@@ -388,7 +388,7 @@ describe("IssuesPage (shared)", () => {
     expect(screen.getByText("Write tests")).toBeInTheDocument();
   });
 
-  it("renders Workspace issue problem summary instead of raw markdown on cards", async () => {
+  it("renders Workspace issue business copy instead of raw markdown on cards", async () => {
     const workspaceIssue: Issue = {
       ...mockIssues[0]!,
       id: "issue-workspace-summary",
@@ -421,9 +421,10 @@ describe("IssuesPage (shared)", () => {
     renderWithQuery(<IssuesPage />);
 
     await screen.findByText("闭环缺口：线上真实运行目录还没有回归。");
-    expect(screen.getByText("线上真实运行目录还没有回归。")).toBeInTheDocument();
+    expect(screen.getByText("处理方案：补跑 live-path regression。")).toBeInTheDocument();
     expect(screen.queryByText("AI 开发闭环存在遗留问题：共享上下文")).not.toBeInTheDocument();
     expect(screen.queryByText(/workspace-source-id/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^## 问题/)).not.toBeInTheDocument();
   });
 
   it("renders board column headers", async () => {
