@@ -30,20 +30,21 @@ test.describe("Issues", () => {
     await api.createIssue("E2E Board View " + Date.now());
     await page.reload();
 
-    // Board defaults to the active/current slice; backlog/done stay available
-    // through column filters but are not rendered by default.
-    await expect(page.locator("text=Todo")).toBeVisible();
-    await expect(page.locator("text=In Progress")).toBeVisible();
-    await expect(page.locator("text=In Review")).toBeVisible();
-    await expect(page.locator("text=Blocked")).toBeVisible();
-    await expect(page.locator("text=Hidden columns")).toBeVisible();
+    await expect(page.getByText("Design", { exact: true })).toBeVisible();
+    await expect(page.getByText("Not started", { exact: true })).toBeVisible();
+    await expect(page.getByText("Developing", { exact: true })).toBeVisible();
+    await expect(page.getByText("Testing", { exact: true })).toBeVisible();
+    await expect(page.getByText("Review", { exact: true })).toBeVisible();
+    await expect(page.getByText("Done", { exact: true })).toBeVisible();
+    await expect(page.getByText("Pending", { exact: true })).toBeVisible();
+    await expect(page.getByText("Hidden columns")).toBeHidden();
   });
 
   test("can switch from board to list view", async ({ page }) => {
     const title = "E2E List Switch " + Date.now();
     await api.createIssue(title);
     await page.reload();
-    await expect(page.locator("text=Todo")).toBeVisible();
+    await expect(page.getByText("Not started", { exact: true })).toBeVisible();
 
     // Switch to list view through the view-mode menu. Avoid `text=List`,
     // which can match issue titles.
