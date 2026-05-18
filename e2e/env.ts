@@ -11,3 +11,7 @@ for (const filename of envCandidates) {
     break;
   }
 }
+
+if (!process.env.PLAYWRIGHT_BASE_URL) {
+  process.env.PLAYWRIGHT_BASE_URL = `http://localhost:${process.env.FRONTEND_PORT || "3000"}`;
+}
