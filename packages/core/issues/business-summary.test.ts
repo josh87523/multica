@@ -42,6 +42,23 @@ describe("issue business summary", () => {
     expect(issueCardDescription({ ...baseIssue, description })).toBe("处理方案：删除远程任务分支后重新运行 finisher。");
   });
 
+  it("prefers the problem when workspace-sync reason and solution are generic boilerplate", () => {
+    const description = [
+      "## 问题",
+      "T-093 含蓄科技 LOFTER 自动化资产 private 但仍有 live operational risk，缺 owner/patch/secret/runtime 明细",
+      "",
+      "## 原因",
+      "这条记录来自人工维护的 TODO / backlog 文档，属于「小需求」。它代表 IndustryInsights 当前仍未闭环的业务、产品或交付缺口。",
+      "",
+      "## 处理方案",
+      "原始记录没有结构化方案时，先按这条问题补齐负责人、验收标准和下一步；已有方案则按原文推进，并在完成后关闭对应 TODO。",
+    ].join("\n");
+
+    expect(issueCardDescription({ ...baseIssue, description })).toBe(
+      "T-093 含蓄科技 LOFTER 自动化资产 private 但仍有 live operational risk，缺 owner/patch/secret/runtime 明细",
+    );
+  });
+
   it("falls back to the raw description for ordinary issues", () => {
     expect(issueCardDescription({ ...baseIssue, description: "Add JWT authentication" })).toBe("Add JWT authentication");
   });
