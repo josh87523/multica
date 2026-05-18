@@ -53,6 +53,31 @@ test.describe("Issues", () => {
     await expect(page.getByText(title)).toBeVisible();
   });
 
+  test("board cards prefer the problem summary over generic workspace boilerplate", async ({ page }) => {
+    const title = "E2E Workspace Summary " + Date.now();
+    const problem = "Unique problem summary " + Date.now();
+    const genericSolution =
+      "原始记录没有结构化方案时，先按这条问题补齐负责人、验收标准和下一步；已有方案则按原文推进，并在完成后关闭对应 TODO。";
+
+    await api.createIssue(title, {
+      description: [
+        "## 问题",
+        problem,
+        "",
+        "## 原因",
+        "这条记录来自人工维护的 TODO / backlog 文档，属于「小需求」。它代表 IndustryInsights 当前仍未闭环的业务、产品或交付缺口。",
+        "",
+        "## 处理方案",
+        genericSolution,
+      ].join("\n"),
+    });
+
+    await page.reload();
+
+    await expect(page.getByText(problem)).toBeVisible();
+    await expect(page.getByText(genericSolution)).toBeHidden();
+  });
+
   test("can create a new issue", async ({ page }) => {
     await openNewIssue(page);
 
