@@ -59,6 +59,23 @@ describe("issue business summary", () => {
     );
   });
 
+  it("treats source-document fallback solutions as generic and still shows the problem", () => {
+    const description = [
+      "## 问题",
+      "Add 7-day archive GC for temporary retired entrypoints.",
+      "",
+      "## 原因",
+      "这条记录来自人工维护的 TODO / backlog 文档，属于「项目待办」。它代表 Claude/Codex 共享上下文 当前仍未闭环的业务、产品或交付缺口。",
+      "",
+      "## 处理方案",
+      "下一步：回到 TODO.md:42 补齐负责人、验收标准、验证命令；若原文已有更具体方案，按原文推进，并在完成后关闭对应 TODO。",
+    ].join("\n");
+
+    expect(issueCardDescription({ ...baseIssue, description })).toBe(
+      "Add 7-day archive GC for temporary retired entrypoints.",
+    );
+  });
+
   it("falls back to the raw description for ordinary issues", () => {
     expect(issueCardDescription({ ...baseIssue, description: "Add JWT authentication" })).toBe("Add JWT authentication");
   });
