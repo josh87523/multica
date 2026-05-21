@@ -78,7 +78,12 @@
   },
   "list": {
     "empty_status": "No issues",
-    "add_issue_tooltip": "Add issue"
+    "add_issue_tooltip": "Add issue",
+    "group_due_today": "Due today",
+    "group_due_tomorrow": "Due tomorrow",
+    "group_created_today": "Created today",
+    "group_yesterday": "Yesterday",
+    "group_no_due_date": "No due date"
   },
   "board": {
     "hidden_columns_label": "Hidden columns",

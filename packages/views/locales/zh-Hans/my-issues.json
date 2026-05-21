@@ -1,6 +1,6 @@
 {
   "page": {
-    "breadcrumb": "我的 issue",
+    "breadcrumb": "我的 Issue",
     "workspace_fallback": "工作区",
     "empty_title": "没有分配给你的 issue",
     "empty_description": "你创建或被分配到的 issue 会显示在这里。"

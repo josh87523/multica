@@ -36,9 +36,7 @@ import {
 import { Switch } from "@multica/ui/components/ui/switch";
 import {
   ALL_STATUSES,
-  STATUS_CONFIG,
   PRIORITY_ORDER,
-  PRIORITY_CONFIG,
 } from "@multica/core/issues/config";
 import { StatusIcon, PriorityIcon } from "../../issues/components";
 import {
@@ -106,6 +104,7 @@ function useIssueCounts(allIssues: Issue[]) {
 
 export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
   const { t } = useT("my-issues");
+  const { t: issuesT } = useT("issues");
   const SCOPES: { value: MyIssuesScope; label: string; description: string }[] = [
     { value: "assigned", label: t(($) => $.header.scope.assigned_label), description: t(($) => $.header.scope.assigned_description) },
     { value: "created", label: t(($) => $.header.scope.created_label), description: t(($) => $.header.scope.created_description) },
@@ -125,8 +124,23 @@ export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
   const hasActiveFilters =
     getActiveFilterCount({ statusFilters, priorityFilters }) > 0;
 
-  const sortLabel =
-    SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? t(($) => $.header.sort_manual);
+  const SORT_LABEL_KEY: Record<typeof SORT_OPTIONS[number]["value"], "sort_manual" | "sort_priority" | "sort_due_date" | "sort_created" | "sort_title"> = {
+    position: "sort_manual",
+    priority: "sort_priority",
+    due_date: "sort_due_date",
+    created_at: "sort_created",
+    title: "sort_title",
+  };
+  const CARD_PROPERTY_LABEL_KEY: Record<typeof CARD_PROPERTY_OPTIONS[number]["key"], "card_priority" | "card_description" | "card_assignee" | "card_due_date" | "card_project" | "card_labels" | "card_child_progress"> = {
+    priority: "card_priority",
+    description: "card_description",
+    assignee: "card_assignee",
+    dueDate: "card_due_date",
+    project: "card_project",
+    labels: "card_labels",
+    childProgress: "card_child_progress",
+  };
+  const sortLabel = issuesT(($) => $.display[SORT_LABEL_KEY[sortBy]]);
 
   return (
     <div className="flex h-12 shrink-0 items-center justify-between px-4">
@@ -201,7 +215,7 @@ export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
                     >
                       <HoverCheck checked={checked} />
                       <StatusIcon status={s} className="h-3.5 w-3.5" />
-                      {STATUS_CONFIG[s].label}
+                      {issuesT(($) => $.status[s])}
                       {count > 0 && (
                         <span className="ml-auto text-xs text-muted-foreground">
                           {t(($) => $.header.issue_count, { count })}
@@ -237,7 +251,7 @@ export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
                     >
                       <HoverCheck checked={checked} />
                       <PriorityIcon priority={p} />
-                      {PRIORITY_CONFIG[p].label}
+                      {issuesT(($) => $.priority[p])}
                       {count > 0 && (
                         <span className="ml-auto text-xs text-muted-foreground">
                           {t(($) => $.header.issue_count, { count })}
@@ -302,7 +316,7 @@ export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
                         key={opt.value}
                         onClick={() => act.setSortBy(opt.value)}
                       >
-                        {opt.label}
+                        {issuesT(($) => $.display[SORT_LABEL_KEY[opt.value]])}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -336,7 +350,7 @@ export function MyIssuesHeader({ allIssues }: { allIssues: Issue[] }) {
                     key={opt.key}
                     className="flex cursor-pointer items-center justify-between"
                   >
-                    <span className="text-sm">{opt.label}</span>
+                    <span className="text-sm">{issuesT(($) => $.display[CARD_PROPERTY_LABEL_KEY[opt.key]])}</span>
                     <Switch
                       size="sm"
                       checked={cardProperties[opt.key]}
