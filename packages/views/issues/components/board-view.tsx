@@ -29,7 +29,7 @@ import {
 import { ALL_STATUSES } from "@multica/core/issues/config";
 import { useViewStoreApi, useViewStore } from "@multica/core/issues/stores/view-store-context";
 import type { SortField, SortDirection } from "@multica/core/issues/stores/view-store";
-import { sortIssues } from "../utils/sort";
+import { computeManualPosition, sortIssues } from "../utils/sort";
 import { StatusIcon } from "./status-icon";
 import { BoardColumn } from "./board-column";
 import { BoardCardContent } from "./board-card";
@@ -70,17 +70,6 @@ function buildColumns(
     cols[status] = sorted.map((i) => i.id);
   }
   return cols;
-}
-
-/** Compute a float position for `activeId` based on its neighbors in `ids`. */
-function computePosition(ids: string[], activeId: string, issueMap: Map<string, Issue>): number {
-  const idx = ids.indexOf(activeId);
-  if (idx === -1) return 0;
-  const getPos = (id: string) => issueMap.get(id)?.position ?? 0;
-  if (ids.length === 1) return issueMap.get(activeId)?.position ?? 0;
-  if (idx === 0) return getPos(ids[1]!) - 1;
-  if (idx === ids.length - 1) return getPos(ids[idx - 1]!) + 1;
-  return (getPos(ids[idx - 1]!) + getPos(ids[idx + 1]!)) / 2;
 }
 
 /** Find which column (status) contains a given ID (issue or column droppable). */
@@ -264,7 +253,7 @@ export function BoardView({
 
       const map = issueMapRef.current;
       const finalIds = finalColumns[finalCol]!;
-      const newPosition = computePosition(finalIds, activeId, map);
+      const newPosition = computeManualPosition(finalIds, activeId, map, sortDirection);
       const currentIssue = map.get(activeId);
 
       if (
