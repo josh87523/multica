@@ -1487,6 +1487,38 @@ func TestSendCodeRateLimit(t *testing.T) {
 	}
 }
 
+func TestSendCodePrivateLoginSkipsVerificationCodePersistence(t *testing.T) {
+	t.Setenv("MULTICA_PRIVATE_LOGIN_CODE", "246810")
+	t.Setenv("APP_ENV", "production")
+
+	const email = "private-login-sendcode@multica.ai"
+	ctx := context.Background()
+	origCfg := testHandler.cfg
+	testHandler.cfg = Config{
+		AllowSignup:   false,
+		AllowedEmails: []string{email},
+	}
+	defer func() { testHandler.cfg = origCfg }()
+
+	t.Cleanup(func() {
+		testPool.Exec(ctx, `DELETE FROM verification_code WHERE email = $1`, email)
+	})
+
+	w := httptest.NewRecorder()
+	var buf bytes.Buffer
+	json.NewEncoder(&buf).Encode(map[string]string{"email": email})
+	req := httptest.NewRequest("POST", "/auth/send-code", &buf)
+	req.Header.Set("Content-Type", "application/json")
+	testHandler.SendCode(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("SendCode (private login): expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	if _, err := testHandler.Queries.GetLatestVerificationCode(ctx, email); err == nil {
+		t.Fatal("SendCode (private login): expected no verification_code row to be created")
+	}
+}
+
 func TestVerifyCode(t *testing.T) {
 	const email = "verify-test@multica.ai"
 	ctx := context.Background()
@@ -1625,6 +1657,63 @@ func TestVerifyCodeRejectsConfiguredDevCodeInProduction(t *testing.T) {
 	testHandler.VerifyCode(w, req)
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("VerifyCode (production dev code): expected 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestVerifyCodeAcceptsPrivateLoginCodeForAllowlistedEmail(t *testing.T) {
+	t.Setenv("MULTICA_PRIVATE_LOGIN_CODE", "246810")
+	t.Setenv("APP_ENV", "production")
+
+	const email = "private-login-allowed@multica.ai"
+	ctx := context.Background()
+	origCfg := testHandler.cfg
+	testHandler.cfg = Config{
+		AllowSignup:   false,
+		AllowedEmails: []string{email},
+	}
+	defer func() { testHandler.cfg = origCfg }()
+
+	t.Cleanup(func() {
+		testPool.Exec(ctx, `DELETE FROM verification_code WHERE email = $1`, email)
+		testPool.Exec(ctx, `DELETE FROM "user" WHERE email = $1`, email)
+	})
+
+	w := httptest.NewRecorder()
+	var buf bytes.Buffer
+	json.NewEncoder(&buf).Encode(map[string]string{"email": email, "code": "246810"})
+	req := httptest.NewRequest("POST", "/auth/verify-code", &buf)
+	req.Header.Set("Content-Type", "application/json")
+	testHandler.VerifyCode(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("VerifyCode (private login code): expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestVerifyCodeRejectsPrivateLoginCodeForNonAllowlistedEmail(t *testing.T) {
+	t.Setenv("MULTICA_PRIVATE_LOGIN_CODE", "246810")
+	t.Setenv("APP_ENV", "production")
+
+	const email = "private-login-blocked@multica.ai"
+	ctx := context.Background()
+	origCfg := testHandler.cfg
+	testHandler.cfg = Config{
+		AllowSignup:   false,
+		AllowedEmails: []string{"someone-else@multica.ai"},
+	}
+	defer func() { testHandler.cfg = origCfg }()
+
+	t.Cleanup(func() {
+		testPool.Exec(ctx, `DELETE FROM verification_code WHERE email = $1`, email)
+	})
+
+	w := httptest.NewRecorder()
+	var buf bytes.Buffer
+	json.NewEncoder(&buf).Encode(map[string]string{"email": email, "code": "246810"})
+	req := httptest.NewRequest("POST", "/auth/verify-code", &buf)
+	req.Header.Set("Content-Type", "application/json")
+	testHandler.VerifyCode(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("VerifyCode (private login code non-allowlisted): expected 400, got %d: %s", w.Code, w.Body.String())
 	}
 }
 

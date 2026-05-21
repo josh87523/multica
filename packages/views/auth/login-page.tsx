@@ -61,6 +61,9 @@ interface LoginPageProps {
    *  app?" prompt; desktop omits it (a download prompt inside the app
    *  would be absurd). */
   extra?: ReactNode;
+  /** Private self-host mode: verification uses a shared operator-managed
+   *  code instead of email delivery. */
+  privateLoginMode?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +108,7 @@ export function LoginPage({
   onTokenObtained,
   onGoogleLogin,
   extra,
+  privateLoginMode = false,
 }: LoginPageProps) {
   const { t } = useT("auth");
   const qc = useQueryClient();
@@ -344,7 +348,9 @@ export function LoginPage({
               {t(($) => $.verify.title)}
             </CardTitle>
             <CardDescription>
-              {t(($) => $.verify.description, { email })}
+              {privateLoginMode
+                ? t(($) => $.verify.private_description, { email })
+                : t(($) => $.verify.description, { email })}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">

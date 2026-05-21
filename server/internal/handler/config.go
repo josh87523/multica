@@ -10,8 +10,9 @@ type AppConfig struct {
 	// Public auth config consumed by the web app at runtime so self-hosted
 	// deployments do not need to rebuild the frontend image when operators
 	// toggle signup or wire Google OAuth.
-	AllowSignup    bool   `json:"allow_signup"`
-	GoogleClientID string `json:"google_client_id,omitempty"`
+	AllowSignup      bool   `json:"allow_signup"`
+	GoogleClientID   string `json:"google_client_id,omitempty"`
+	PrivateLoginMode bool   `json:"private_login_mode"`
 
 	// PostHog public config for the frontend. The key is the same Project
 	// API Key the backend uses; returning it here (instead of baking it
@@ -28,8 +29,9 @@ type AppConfig struct {
 // to anonymous callers — never user- or tenant-scoped data.
 func (h *Handler) GetConfig(w http.ResponseWriter, r *http.Request) {
 	config := AppConfig{
-		AllowSignup:    os.Getenv("ALLOW_SIGNUP") != "false",
-		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
+		AllowSignup:      os.Getenv("ALLOW_SIGNUP") != "false",
+		GoogleClientID:   os.Getenv("GOOGLE_CLIENT_ID"),
+		PrivateLoginMode: privateLoginModeEnabled(h.cfg),
 	}
 	if h.Storage != nil {
 		config.CdnDomain = h.Storage.CdnDomain()

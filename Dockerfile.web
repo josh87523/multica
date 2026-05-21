@@ -5,6 +5,9 @@ RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
 
+ARG NPM_REGISTRY=https://registry.npmjs.org
+RUN pnpm config set registry ${NPM_REGISTRY}
+
 # Copy workspace config and all package.json files for dependency resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json .npmrc ./
 COPY apps/web/package.json apps/web/
@@ -22,6 +25,9 @@ FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
+
+ARG NPM_REGISTRY=https://registry.npmjs.org
+RUN pnpm config set registry ${NPM_REGISTRY}
 
 # Copy installed dependencies (preserves pnpm symlink structure)
 COPY --from=deps /app ./

@@ -46,6 +46,31 @@ This shortcut is ignored when `APP_ENV=production`.
 
 Production deployments should leave `MULTICA_DEV_VERIFICATION_CODE` empty and set `APP_ENV=production`. If you deploy via `make selfhost` / `docker-compose.selfhost.yml`, `APP_ENV` defaults to `production`.
 
+## Private shared login code for small teams
+
+If you're setting up Multica for a tiny private team and don't want to wire
+Resend or Google OAuth yet, you can enable a **private shared login code**:
+
+```bash
+ALLOWED_EMAILS=alice@company.com,bob@company.com,carol@company.com
+MULTICA_PRIVATE_LOGIN_CODE=246810
+```
+
+How it works:
+
+1. Each person still signs in with **their own email**, so user identity stays separate
+2. After clicking Continue, the UI asks for the fixed 6-digit login code instead of waiting for an email
+3. Only emails listed in `ALLOWED_EMAILS` can complete first-time sign-in with that code
+
+<Callout type="warning">
+This is only for tightly controlled private instances with a very small number
+of users.
+
+- Use it with exact email allowlists, not broad domain allowlists
+- Do not combine it with open signup
+- Treat it as a bootstrap shortcut, not a long-term public auth strategy
+</Callout>
+
 ## Google OAuth configuration
 
 Optional. Without it, only email + verification code is available; with it, the sign-in page gets a "Sign in with Google" button.

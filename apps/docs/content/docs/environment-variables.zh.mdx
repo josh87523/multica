@@ -41,8 +41,11 @@ Multica 用 [Resend](https://resend.com/) 发验证码和邀请邮件。
 |---|---|---|
 | `RESEND_API_KEY` | 空 | Resend API key |
 | `RESEND_FROM_EMAIL` | `noreply@multica.ai` | 发件地址（必须是 Resend 账号已验证的域名）|
+| `MULTICA_PRIVATE_LOGIN_CODE` | 空 | 私有小团队固定 6 位登录码。仅当 `ALLOWED_EMAILS` 非空时才生效 |
 
 **不设 `RESEND_API_KEY` 时的行为**：server 不会报错，但所有本该发出去的邮件（验证码、邀请链接）**只打到 server 的 stdout**。本地开发时方便——你从 server 日志里抄验证码；**生产环境忘记设就是黑洞**，用户收不到邮件也没任何错误提示。
+
+**设 `MULTICA_PRIVATE_LOGIN_CODE` 时的行为**：登录页改成“邮箱 + 固定 6 位码”模式。用户仍然要先输入邮箱，但不再依赖邮件送达。这个模式只适合人数很少、且 `ALLOWED_EMAILS` 已精确收紧的私有实例。
 
 ## 怎么配 Google OAuth
 

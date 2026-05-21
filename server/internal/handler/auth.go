@@ -37,6 +37,7 @@ var ErrSignupProhibited = SignupError{Message: "user registration is disabled on
 var ErrEmailNotAllowed = SignupError{Message: "email address or domain not allowed on this instance"}
 
 const devVerificationCodeEnv = "MULTICA_DEV_VERIFICATION_CODE"
+const privateLoginCodeEnv = "MULTICA_PRIVATE_LOGIN_CODE"
 
 // supportedLanguages mirrors `SUPPORTED_LOCALES` in packages/core/i18n/types.ts.
 // Keep both lists in sync when adding a locale — the user-controlled `language`
@@ -116,6 +117,29 @@ func isDevVerificationCode(code string) bool {
 	}
 
 	return subtle.ConstantTimeCompare([]byte(code), []byte(devCode)) == 1
+}
+
+func configuredPrivateLoginCode() string {
+	code := strings.TrimSpace(os.Getenv(privateLoginCodeEnv))
+	if !isSixDigitCode(code) {
+		return ""
+	}
+	return code
+}
+
+func privateLoginModeEnabled(cfg Config) bool {
+	return configuredPrivateLoginCode() != "" && len(cfg.AllowedEmails) > 0
+}
+
+func isPrivateLoginCode(cfg Config, email, code string) bool {
+	privateCode := configuredPrivateLoginCode()
+	if privateCode == "" || len(cfg.AllowedEmails) == 0 {
+		return false
+	}
+	if !contains(cfg.AllowedEmails, email) {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(code), []byte(privateCode)) == 1
 }
 
 func isProductionEnv() bool {
@@ -297,6 +321,12 @@ func (h *Handler) SendCode(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if privateLoginModeEnabled(h.cfg) {
+		slog.Info("private login code requested", "email", email)
+		writeJSON(w, http.StatusOK, map[string]string{"message": "Verification code sent"})
+		return
+	}
+
 	// Rate limit: max 1 code per 60 seconds per email
 	latest, err := h.Queries.GetLatestCodeByEmail(r.Context(), email)
 	if err == nil && time.Since(latest.CreatedAt.Time) < 60*time.Second {
@@ -347,22 +377,29 @@ func (h *Handler) VerifyCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbCode, err := h.Queries.GetLatestVerificationCode(r.Context(), email)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid or expired code")
-		return
+	isDevCode := isDevVerificationCode(code)
+	isPrivateCode := isPrivateLoginCode(h.cfg, email, code)
+	var dbCode db.VerificationCode
+	if !isDevCode && !isPrivateCode {
+		var err error
+		dbCode, err = h.Queries.GetLatestVerificationCode(r.Context(), email)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid or expired code")
+			return
+		}
 	}
 
-	isDevCode := isDevVerificationCode(code)
-	if !isDevCode && subtle.ConstantTimeCompare([]byte(code), []byte(dbCode.Code)) != 1 {
+	if !isDevCode && !isPrivateCode && subtle.ConstantTimeCompare([]byte(code), []byte(dbCode.Code)) != 1 {
 		_ = h.Queries.IncrementVerificationCodeAttempts(r.Context(), dbCode.ID)
 		writeError(w, http.StatusBadRequest, "invalid or expired code")
 		return
 	}
 
-	if err := h.Queries.MarkVerificationCodeUsed(r.Context(), dbCode.ID); err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to verify code")
-		return
+	if !isDevCode && !isPrivateCode {
+		if err := h.Queries.MarkVerificationCodeUsed(r.Context(), dbCode.ID); err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to verify code")
+			return
+		}
 	}
 
 	user, isNew, err := h.findOrCreateUser(r.Context(), email)

@@ -198,6 +198,21 @@ describe("LoginPage", () => {
     expect(screen.getByText(/test@example.com/)).toBeInTheDocument();
   });
 
+  it("renders private login copy on the code step when enabled", async () => {
+    mockSendCode.mockResolvedValueOnce(undefined);
+    renderWithI18n(<LoginPage onSuccess={onSuccess} privateLoginMode />);
+
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/email/i), "test@example.com");
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/enter the private login code for test@example.com/i),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("shows error when sendCode fails", async () => {
     mockSendCode.mockRejectedValueOnce(new Error("Rate limited"));
     renderWithI18n(<LoginPage onSuccess={onSuccess} />);
