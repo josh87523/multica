@@ -13,7 +13,7 @@ import { useAuthStore } from "@multica/core/auth";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { useWorkspacePaths } from "@multica/core/paths";
 import { useModalStore } from "@multica/core/modals";
-import { useUpdateIssue } from "@multica/core/issues/mutations";
+import { useCreateComment, useUpdateIssue } from "@multica/core/issues/mutations";
 import {
   memberListOptions,
   agentListOptions,
@@ -34,6 +34,7 @@ export interface UseIssueActionsResult {
   updateField: (updates: Partial<UpdateIssueRequest>) => void;
   togglePin: () => void;
   copyLink: () => Promise<void>;
+  requestOrchestration: (command: "dispatch" | "approve-build") => Promise<void>;
   openCreateSubIssue: () => void;
   openSetParent: () => void;
   openAddChild: () => void;
@@ -77,14 +78,15 @@ export function useIssueActions(issue: Issue | null): UseIssueActionsResult {
       (p) => p.item_type === "issue" && p.item_id === issue.id,
     );
 
-  const updateIssue = useUpdateIssue();
-  const createPin = useCreatePin();
-  const deletePin = useDeletePin();
-  const openModal = useModalStore((s) => s.open);
-
   const issueId = issue?.id ?? null;
   const issueStatus = issue?.status ?? null;
   const issueIdentifier = issue?.identifier ?? null;
+
+  const updateIssue = useUpdateIssue();
+  const createComment = useCreateComment(issueId ?? "");
+  const createPin = useCreatePin();
+  const deletePin = useDeletePin();
+  const openModal = useModalStore((s) => s.open);
 
   const updateField = useCallback(
     (updates: Partial<UpdateIssueRequest>) => {
@@ -133,6 +135,22 @@ export function useIssueActions(issue: Issue | null): UseIssueActionsResult {
     }
   }, [paths, issueId, navigation, t]);
 
+  const requestOrchestration = useCallback(
+    async (command: "dispatch" | "approve-build") => {
+      if (!issueId) return;
+      try {
+        await createComment.mutateAsync({
+          content: `/orchestrate ${command}`,
+          type: "comment",
+        });
+        toast.success(command === "dispatch" ? "Orchestration requested" : "Build approval requested");
+      } catch {
+        toast.error("Failed to request orchestration");
+      }
+    },
+    [createComment, issueId],
+  );
+
   const openCreateSubIssue = useCallback(() => {
     if (!issueId) return;
     openModal("create-issue", {
@@ -170,6 +188,7 @@ export function useIssueActions(issue: Issue | null): UseIssueActionsResult {
     updateField,
     togglePin,
     copyLink,
+    requestOrchestration,
     openCreateSubIssue,
     openSetParent,
     openAddChild,

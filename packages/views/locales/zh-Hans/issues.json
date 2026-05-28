@@ -248,6 +248,8 @@
     "pin_to_sidebar": "固定到侧边栏",
     "unpin_from_sidebar": "从侧边栏取消固定",
     "copy_link": "复制链接",
+    "run_agent_flow": "运行 Agent 流程",
+    "approve_build": "批准进入开发",
     "more": "更多",
     "create_sub_issue": "创建子 issue",
     "set_parent_issue": "设置父 issue...",

@@ -902,6 +902,58 @@ func TestCommentCRUD(t *testing.T) {
 	testHandler.DeleteIssue(w, req)
 }
 
+func TestCreateCommentDispatchesIssueCommentWebhookForOrchestrationCommand(t *testing.T) {
+	webhookCh := make(chan issueCommentWebhookPayload, 1)
+	webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		var payload issueCommentWebhookPayload
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode webhook payload: %v", err)
+		}
+		webhookCh <- payload
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	t.Cleanup(webhook.Close)
+	t.Setenv("MULTICA_ISSUE_COMMENT_WEBHOOK_URL", webhook.URL)
+
+	w := httptest.NewRecorder()
+	req := newRequest("POST", "/api/issues?workspace_id="+testWorkspaceID, map[string]any{
+		"title":       "Orchestration comment issue",
+		"description": "<!-- multica-orchestration: {\"stage\":\"idle\",\"status\":\"pending\"} -->",
+	})
+	testHandler.CreateIssue(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("CreateIssue: expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+	var issue IssueResponse
+	json.NewDecoder(w.Body).Decode(&issue)
+
+	w = httptest.NewRecorder()
+	req = newRequest("POST", "/api/issues/"+issue.ID+"/comments", map[string]any{
+		"content": "/orchestrate dispatch",
+	})
+	req = withURLParam(req, "id", issue.ID)
+	testHandler.CreateComment(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("CreateComment: expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	select {
+	case payload := <-webhookCh:
+		if payload.Command != "dispatch" {
+			t.Fatalf("expected dispatch command, got %q", payload.Command)
+		}
+		if payload.Issue.ID != issue.ID {
+			t.Fatalf("expected issue id %q, got %q", issue.ID, payload.Issue.ID)
+		}
+		if payload.Comment.Content != "/orchestrate dispatch" {
+			t.Fatalf("expected webhook comment content, got %q", payload.Comment.Content)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for issue comment webhook")
+	}
+}
+
 func TestCreateCommentRejectsMalformedParentID(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := newRequest("POST", "/api/issues?workspace_id="+testWorkspaceID, map[string]any{

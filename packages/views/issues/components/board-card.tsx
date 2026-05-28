@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useUpdateIssue } from "@multica/core/issues/mutations";
 import { issueCardDescription, issueDisplayTitle } from "@multica/core/issues/business-summary";
+import { orchestrationBadgeLabel } from "../utils/orchestration";
 import { issueWorkspaceControlWritable } from "@multica/core/issues/workspace-control";
 import { useWorkspacePaths } from "@multica/core/paths";
 import { useWorkspaceId } from "@multica/core/hooks";
@@ -67,6 +68,7 @@ export const BoardCardContent = memo(function BoardCardContent({
   const project = issue.project_id ? projects.find((p) => p.id === issue.project_id) : undefined;
   const labels = issue.labels ?? [];
   const workspaceControl = issue.workspace_control;
+  const orchestrationLabel = orchestrationBadgeLabel(issue);
   const canEditWorkspaceSource = issueWorkspaceControlWritable(issue);
   const cardDescription = issueCardDescription(issue);
   const displayTitle = issueDisplayTitle(issue);
@@ -108,6 +110,11 @@ export const BoardCardContent = memo(function BoardCardContent({
             title={workspaceControl?.error ?? workspaceControl?.source_id}
           >
             {workspaceControl?.status ?? (workspaceControl?.writable ? "workspace" : "read-only")}
+          </span>
+        )}
+        {orchestrationLabel && (
+          <span className="inline-flex min-h-5 items-center rounded border border-emerald-200 bg-emerald-50 px-1.5 text-[10px] font-medium text-emerald-700">
+            {orchestrationLabel}
           </span>
         )}
       </div>

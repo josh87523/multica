@@ -39,6 +39,7 @@ import { ActorAvatar } from "../../common/actor-avatar";
 import { PropRow } from "../../common/prop-row";
 import type { IssueStatus, IssuePriority, TimelineEntry } from "@multica/core/types";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@multica/core/issues/config";
+import { orchestrationBadgeLabel } from "../utils/orchestration";
 import { StatusIcon, PriorityIcon, StatusPicker, PriorityPicker, DueDatePicker, AssigneePicker, LabelPicker } from ".";
 import { IssueActionsDropdown, useIssueActions } from "../actions";
 import { ProjectPicker } from "../../projects/components/project-picker";
@@ -483,6 +484,7 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
       </div>
     );
   }
+  const orchestrationLabel = orchestrationBadgeLabel(issue);
 
   const sidebarContent = (
     <div className="space-y-5">
@@ -751,6 +753,11 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
                 );
               })()}
             </AppLink>
+          )}
+          {orchestrationLabel && (
+            <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+              {orchestrationLabel}
+            </span>
           )}
 
           <div {...descDropZoneProps} className="relative mt-5 rounded-lg">

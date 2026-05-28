@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   UserMinus,
+  Workflow,
 } from "lucide-react";
 import type { Issue } from "@multica/core/types";
 import {
@@ -90,6 +91,7 @@ export function IssueActionsMenuItems({
     updateField,
     togglePin,
     copyLink,
+    requestOrchestration,
     openCreateSubIssue,
     openSetParent,
     openAddChild,
@@ -237,6 +239,14 @@ export function IssueActionsMenuItems({
       <P.Item onClick={copyLink}>
         <Link2 className="h-3.5 w-3.5" />
         {t(($) => $.actions.copy_link)}
+      </P.Item>
+      <P.Item onClick={() => void requestOrchestration("dispatch")}>
+        <Workflow className="h-3.5 w-3.5" />
+        {t(($) => $.actions.run_agent_flow)}
+      </P.Item>
+      <P.Item onClick={() => void requestOrchestration("approve-build")}>
+        <Workflow className="h-3.5 w-3.5" />
+        {t(($) => $.actions.approve_build)}
       </P.Item>
 
       <P.Separator />
