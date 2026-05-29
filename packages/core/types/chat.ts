@@ -73,3 +73,73 @@ export interface ChatPendingTask {
   status?: string;
   created_at?: string;
 }
+
+export interface ProjectChatArtifact {
+  kind: string;
+  label: string;
+  summary: string;
+  ref: string;
+  created_at?: string;
+}
+
+export interface ProjectCreativeAssetSnapshot {
+  style_examples: string[];
+  title_preferences: string[];
+  shape_preferences: string[];
+  historical_notes: string[];
+}
+
+export interface ProjectChatContext {
+  project_id: string;
+  project_title: string;
+  project_status: string;
+  project_priority: string;
+  status_summary: string;
+  latest_review_summary: string[];
+  current_draft_label: string;
+  next_recommended_actions: string[];
+  creative_asset_snapshot: ProjectCreativeAssetSnapshot;
+  latest_artifacts: ProjectChatArtifact[];
+  attached_resources: ProjectChatArtifact[];
+  recent_actions: ProjectChatActionResponse[];
+}
+
+export type ProjectChatActionType = "ask" | "shape" | "create" | "operate";
+
+export interface ProjectChatAssetPatchPreview {
+  asset_target: string;
+  summary: string;
+  patch: string;
+}
+
+export interface ProjectChatOperateHandoff {
+  operation: string;
+  payload: Record<string, unknown>;
+  risk_reason: string;
+  destination: string;
+}
+
+export interface ProjectChatActionRequest {
+  input_text: string;
+  context_hint?: string;
+}
+
+export interface ProjectChatAssetPatchRequest {
+  asset_target: string;
+  patch: string;
+}
+
+export interface ProjectChatAssetPatchResponse {
+  updated_asset_snapshot: ProjectCreativeAssetSnapshot;
+}
+
+export interface ProjectChatActionResponse {
+  action_type: ProjectChatActionType;
+  normalized_payload: Record<string, unknown>;
+  requires_confirmation: boolean;
+  result_title: string;
+  result_summary: string;
+  result_items: string[];
+  asset_patch_preview?: ProjectChatAssetPatchPreview | null;
+  operate_handoff?: ProjectChatOperateHandoff | null;
+}

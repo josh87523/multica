@@ -52,6 +52,11 @@ import type {
   ChatPendingTask,
   PendingChatTasksResponse,
   SendChatMessageResponse,
+  ProjectChatContext,
+  ProjectChatActionRequest,
+  ProjectChatAssetPatchRequest,
+  ProjectChatAssetPatchResponse,
+  ProjectChatActionResponse,
   Project,
   CreateProjectRequest,
   UpdateProjectRequest,
@@ -1040,6 +1045,30 @@ export class ApiClient {
 
   async listPendingChatTasks(): Promise<PendingChatTasksResponse> {
     return this.fetch(`/api/chat/pending-tasks`);
+  }
+
+  async getProjectChatContext(projectId: string): Promise<ProjectChatContext> {
+    return this.fetch(`/api/chat/projects/${projectId}/context`);
+  }
+
+  async runProjectChatAction(
+    projectId: string,
+    data: ProjectChatActionRequest,
+  ): Promise<ProjectChatActionResponse> {
+    return this.fetch(`/api/chat/projects/${projectId}/actions`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async applyProjectChatAssetPatch(
+    projectId: string,
+    data: ProjectChatAssetPatchRequest,
+  ): Promise<ProjectChatAssetPatchResponse> {
+    return this.fetch(`/api/chat/projects/${projectId}/assets/patch`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async markChatSessionRead(sessionId: string): Promise<void> {

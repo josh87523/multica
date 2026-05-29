@@ -487,6 +487,9 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				})
 			})
 			r.Get("/api/chat/pending-tasks", h.ListPendingChatTasks)
+			r.Get("/api/chat/projects/{projectId}/context", h.GetProjectChatContext)
+			r.Post("/api/chat/projects/{projectId}/actions", h.RunProjectChatAction)
+			r.Post("/api/chat/projects/{projectId}/assets/patch", h.ApplyProjectChatAssetPatch)
 
 			// Inbox
 			r.Route("/api/inbox", func(r chi.Router) {
