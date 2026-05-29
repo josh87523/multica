@@ -69,6 +69,11 @@ type Handler struct {
 	Analytics             analytics.Client
 	PATCache              *auth.PATCache
 	DaemonTokenCache      *auth.DaemonTokenCache
+	ProjectChatTitles     projectChatTitleGenerator
+	ProjectChatAssets     projectChatAssetStore
+	ProjectChatCreate     projectChatCreateAdapter
+	ProjectChatRecords    projectChatRecordStore
+	ProjectChatQuality    projectChatQualityAdapter
 	cfg                   Config
 }
 
@@ -106,6 +111,11 @@ func New(queries *db.Queries, txStarter txStarter, hub *realtime.Hub, bus *event
 		Storage:               store,
 		CFSigner:              cfSigner,
 		Analytics:             analyticsClient,
+		ProjectChatTitles:     newProjectChatTitleGenerator(),
+		ProjectChatAssets:     newProjectChatAssetStore(),
+		ProjectChatCreate:     newProjectChatCreateAdapter(),
+		ProjectChatRecords:    newProjectChatRecordStore(),
+		ProjectChatQuality:    newProjectChatQualityAdapter(),
 		cfg:                   cfg,
 	}
 }

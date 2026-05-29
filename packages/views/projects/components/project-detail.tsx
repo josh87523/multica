@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
-import { Check, ChevronRight, Link2, ListTodo, MoreHorizontal, PanelRight, Pin, PinOff, Plus, Trash2, UserMinus } from "lucide-react";
+import { Check, ChevronRight, Link2, ListTodo, MessageSquareText, MoreHorizontal, PanelRight, Pin, PinOff, Plus, Trash2, UserMinus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@multica/ui/lib/utils";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ import { BoardView } from "../../issues/components/board-view";
 import { ListView } from "../../issues/components/list-view";
 import { BatchActionToolbar } from "../../issues/components/batch-action-toolbar";
 import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button, buttonVariants } from "@multica/ui/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@multica/ui/components/ui/resizable";
 import { Sheet, SheetContent } from "@multica/ui/components/ui/sheet";
 import { useIsMobile } from "@multica/ui/hooks/use-mobile";
@@ -536,6 +536,16 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
               <span className="truncate">{project.title}</span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              <AppLink
+                href={wsPaths.projectChat(projectId)}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "hidden sm:inline-flex",
+                )}
+              >
+                <MessageSquareText className="mr-1.5 size-4" />
+                写作 Chat
+              </AppLink>
               <Button
                 variant="ghost"
                 size="icon-sm"
