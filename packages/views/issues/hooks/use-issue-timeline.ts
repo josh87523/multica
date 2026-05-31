@@ -100,16 +100,16 @@ export function useIssueTimeline(
   const [submitting, setSubmitting] = useState(false);
   const [newEntriesBelowCount, setNewEntriesBelowCount] = useState(0);
 
-  // Flatten pages → ASC array for the legacy UI consumer. pages are DESC
-  // newest-first; the consumer (issue-detail.tsx) renders chronologically
-  // (oldest at top). Concat → DESC; reverse once at the end → ASC.
+  // Flatten pages and keep the server's DESC order so issue detail defaults
+  // to newest-first. Pagination helpers still preserve "older" vs "newer"
+  // semantics via next/previous cursors.
   const timeline = useMemo<TimelineEntry[]>(() => {
     if (!data) return [];
     const flat: TimelineEntry[] = [];
     for (const page of data.pages) {
       for (const entry of page.entries) flat.push(entry);
     }
-    return flat.reverse();
+    return flat;
   }, [data]);
 
   // Stable mutation handles. TanStack v5 returns a fresh result wrapper from
@@ -421,16 +421,13 @@ export function useIssueTimeline(
   );
 
   // Around-mode anchor index (target_index from server, applied within the
-  // first page). Translated to a flat-array index: the array is reversed
-  // (DESC pages → ASC flat), so the offset within page[0] becomes
-  // (totalEntries - 1) - target_index.
+  // first page). The flat array keeps DESC order, so the server-provided
+  // offset already matches the rendered index within the combined pages.
   const targetFlatIndex = useMemo(() => {
     if (!data || data.pages.length === 0) return null;
     const first = data.pages[0];
     if (!first || first.target_index == null) return null;
-    let total = 0;
-    for (const p of data.pages) total += p.entries.length;
-    return total - 1 - first.target_index;
+    return first.target_index;
   }, [data]);
 
   return {
