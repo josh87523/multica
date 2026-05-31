@@ -16,14 +16,15 @@ import { PriorityIcon } from "./priority-icon";
 import { ProgressRing } from "./progress-ring";
 import { IssueActionsContextMenu } from "../actions";
 import { LabelChip } from "../../labels/label-chip";
+import { useT } from "../../i18n";
 
 export interface ChildProgress {
   done: number;
   total: number;
 }
 
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString("en-US", {
+function formatDate(date: string, locale: string): string {
+  return new Date(date).toLocaleDateString(locale === "zh-Hans" ? "zh-CN" : locale, {
     month: "short",
     day: "numeric",
   });
@@ -36,6 +37,7 @@ export const ListRow = memo(function ListRow({
   issue: Issue;
   childProgress?: ChildProgress;
 }) {
+  const { i18n } = useT("issues");
   const selected = useIssueSelectionStore((s) => s.selectedIds.has(issue.id));
   const toggle = useIssueSelectionStore((s) => s.toggle);
   const p = useWorkspacePaths();
@@ -137,7 +139,7 @@ export const ListRow = memo(function ListRow({
           )}
           {showDueDate && (
             <span className="shrink-0 text-xs text-muted-foreground">
-              {formatDate(issue.due_date!)}
+              {formatDate(issue.due_date!, i18n.language)}
             </span>
           )}
           {showAssignee && (

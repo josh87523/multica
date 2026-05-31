@@ -1,6 +1,6 @@
 {
   "page": {
-    "breadcrumb_title": "issue",
+    "breadcrumb_title": "Issues",
     "breadcrumb_workspace_fallback": "工作区",
     "empty_title": "还没有 issue",
     "empty_hint": "创建一个 issue 开始使用。",
@@ -77,7 +77,12 @@
   },
   "list": {
     "empty_status": "无 issue",
-    "add_issue_tooltip": "新建 issue"
+    "add_issue_tooltip": "新建 issue",
+    "group_due_today": "今天到期",
+    "group_due_tomorrow": "明天到期",
+    "group_created_today": "今天创建",
+    "group_yesterday": "昨天",
+    "group_no_due_date": "无截止日期"
   },
   "board": {
     "hidden_columns_label": "隐藏的列",

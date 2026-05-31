@@ -26,6 +26,7 @@ import { useT } from "../../i18n";
 
 export function IssuesPage() {
   const { t } = useT("issues");
+  const { t: layoutT } = useT("layout");
   const wsId = useWorkspaceId();
   const { data: allIssues = [], isLoading: loading } = useQuery(issueListOptions(wsId));
 
@@ -141,7 +142,7 @@ export function IssuesPage() {
           {workspace?.name ?? t(($) => $.page.breadcrumb_workspace_fallback)}
         </span>
         <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <span className="text-sm font-medium">{t(($) => $.page.breadcrumb_title)}</span>
+        <span className="text-sm font-medium">{layoutT(($) => $.nav.issues)}</span>
       </PageHeader>
 
       <ViewStoreProvider store={useIssueViewStore}>

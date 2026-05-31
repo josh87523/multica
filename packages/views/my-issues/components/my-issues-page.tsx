@@ -29,6 +29,7 @@ import { MyIssuesHeader } from "./my-issues-header";
 
 export function MyIssuesPage() {
   const { t } = useT("my-issues");
+  const { t: layoutT } = useT("layout");
   const user = useAuthStore((s) => s.user);
   const workspace = useCurrentWorkspace();
   const wsId = useWorkspaceId();
@@ -166,7 +167,7 @@ export function MyIssuesPage() {
           {workspace?.name ?? t(($) => $.page.workspace_fallback)}
         </span>
         <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <span className="text-sm font-medium">{t(($) => $.page.breadcrumb)}</span>
+        <span className="text-sm font-medium">{layoutT(($) => $.nav.my_issues)}</span>
       </PageHeader>
 
       {/* Header: scope tabs (left) + controls (right) */}

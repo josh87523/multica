@@ -10,8 +10,15 @@ import { useLoadMoreByStatus } from "@multica/core/issues/mutations";
 import type { MyIssuesFilter } from "@multica/core/issues/queries";
 import { useModalStore } from "@multica/core/modals";
 import { useViewStore } from "@multica/core/issues/stores/view-store-context";
+import type { SortDirection, SortField } from "@multica/core/issues/stores/view-store";
 import { useIssueSelectionStore } from "@multica/core/issues/stores/selection-store";
 import { sortIssues } from "../utils/sort";
+import {
+  buildIssueDateGroups,
+  formatIssueDateGroupLabel,
+  shouldUseDateGrouping,
+  sortDateGroupItems,
+} from "../utils/list-grouping";
 import { StatusHeading } from "./status-heading";
 import { ListRow, type ChildProgress } from "./list-row";
 import { InfiniteScrollSentinel } from "./infinite-scroll-sentinel";
@@ -87,6 +94,8 @@ export function ListView({
             key={status}
             status={status}
             issues={issuesByStatus.get(status) ?? []}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
             childProgressMap={childProgressMap}
             myIssuesOpts={myIssuesOpts}
             projectId={projectId}
@@ -100,17 +109,21 @@ export function ListView({
 function StatusAccordionItem({
   status,
   issues,
+  sortBy,
+  sortDirection,
   childProgressMap,
   myIssuesOpts,
   projectId,
 }: {
   status: IssueStatus;
   issues: Issue[];
+  sortBy: SortField;
+  sortDirection: SortDirection;
   childProgressMap: Map<string, ChildProgress>;
   myIssuesOpts?: { scope: string; filter: MyIssuesFilter };
   projectId?: string;
 }) {
-  const { t } = useT("issues");
+  const { t, i18n } = useT("issues");
   const selectedIds = useIssueSelectionStore((s) => s.selectedIds);
   const select = useIssueSelectionStore((s) => s.select);
   const deselect = useIssueSelectionStore((s) => s.deselect);
@@ -123,6 +136,10 @@ function StatusAccordionItem({
   const selectedCount = issueIds.filter((id) => selectedIds.has(id)).length;
   const allSelected = issues.length > 0 && selectedCount === issues.length;
   const someSelected = selectedCount > 0;
+  const dateGroupingSortBy = shouldUseDateGrouping(sortBy) ? sortBy : null;
+  const groupedByDate = dateGroupingSortBy
+    ? sortDateGroupItems(buildIssueDateGroups(issues, dateGroupingSortBy) ?? [], sortDirection)
+    : null;
 
   return (
     <Accordion.Item value={status}>
@@ -173,9 +190,27 @@ function StatusAccordionItem({
       <Accordion.Panel className="pt-1">
         {issues.length > 0 ? (
           <>
-            {issues.map((issue) => (
-              <ListRow key={issue.id} issue={issue} childProgress={childProgressMap.get(issue.id)} />
-            ))}
+            {groupedByDate && dateGroupingSortBy ? (
+              groupedByDate.map((group) => (
+                <div key={group.key} className="pb-1">
+                  <div className="px-4 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {formatIssueDateGroupLabel({
+                      key: group.key,
+                      sortBy: dateGroupingSortBy,
+                      t,
+                      locale: i18n.language,
+                    })}
+                  </div>
+                  {group.issues.map((issue) => (
+                    <ListRow key={issue.id} issue={issue} childProgress={childProgressMap.get(issue.id)} />
+                  ))}
+                </div>
+              ))
+            ) : (
+              issues.map((issue) => (
+                <ListRow key={issue.id} issue={issue} childProgress={childProgressMap.get(issue.id)} />
+              ))
+            )}
             {hasMore && (
               <InfiniteScrollSentinel onVisible={loadMore} loading={isLoading} />
             )}
