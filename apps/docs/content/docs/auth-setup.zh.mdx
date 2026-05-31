@@ -46,6 +46,29 @@ MULTICA_DEV_VERIFICATION_CODE=888888
 
 生产部署应保持 `MULTICA_DEV_VERIFICATION_CODE` 为空，并设置 `APP_ENV=production`。如果你用 `make selfhost` / `docker-compose.selfhost.yml` 自部署，`APP_ENV` 默认就是 `production`。
 
+## 小团队私有固定登录码
+
+如果你现在只是给一个很小的私有团队用，不想先接 Resend，也不想上 Google OAuth，可以启用 **私有固定登录码**：
+
+```bash
+ALLOWED_EMAILS=alice@company.com,bob@company.com,carol@company.com
+MULTICA_PRIVATE_LOGIN_CODE=246810
+```
+
+行为是：
+
+1. 每个人仍然用**自己的邮箱**登录，所以账号和操作身份是独立的
+2. 点击「继续」后，页面不会再等邮件，而是要求输入这组固定 6 位登录码
+3. 只有 `ALLOWED_EMAILS` 里的邮箱能用这组码完成首次登录
+
+<Callout type="warning">
+这不是公开生产实例的通用方案，只适合**人数很少、邮箱已精确白名单、实例本身受控**的私有部署。
+
+- 不要和 `ALLOWED_EMAIL_DOMAINS=*` 这种宽放行一起用
+- 最好只配精确邮箱，不配整域
+- 这是“先跑起来”的简化模式，不是长期标准认证方案
+</Callout>
+
 ## 怎么配 Google OAuth
 
 可选。不配就只有 Email + 验证码登录；配了后登录页会多出「用 Google 登录」按钮。

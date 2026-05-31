@@ -14,8 +14,16 @@ func TestGetConfigIncludesRuntimeAuthConfig(t *testing.T) {
 
 	t.Setenv("ALLOW_SIGNUP", "false")
 	t.Setenv("GOOGLE_CLIENT_ID", "google-client-id")
+	t.Setenv("MULTICA_PRIVATE_LOGIN_CODE", "123456")
 	t.Setenv("POSTHOG_API_KEY", "phc_test")
 	t.Setenv("POSTHOG_HOST", "https://eu.i.posthog.com")
+
+	origCfg := testHandler.cfg
+	testHandler.cfg = Config{
+		AllowSignup:   false,
+		AllowedEmails: []string{"a@company.com"},
+	}
+	defer func() { testHandler.cfg = origCfg }()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/config", nil)
 	w := httptest.NewRecorder()
@@ -38,6 +46,9 @@ func TestGetConfigIncludesRuntimeAuthConfig(t *testing.T) {
 	}
 	if cfg.GoogleClientID != "google-client-id" {
 		t.Fatalf("google_client_id: want google-client-id, got %q", cfg.GoogleClientID)
+	}
+	if !cfg.PrivateLoginMode {
+		t.Fatalf("private_login_mode: want true, got false")
 	}
 	if cfg.PosthogKey != "phc_test" {
 		t.Fatalf("posthog_key: want phc_test, got %q", cfg.PosthogKey)

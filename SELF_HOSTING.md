@@ -70,6 +70,7 @@ Once ready:
 Open http://localhost:3000 in your browser. The Docker self-host stack defaults to `APP_ENV=production` (set in `docker-compose.selfhost.yml`), and there is no fixed verification code by default. Pick one of the following to log in:
 
 - **Recommended (production):** configure `RESEND_API_KEY` in `.env`, then restart the backend. Real verification codes will be sent to the email address you enter. See [Advanced Configuration → Email](SELF_HOSTING_ADVANCED.md#email-required-for-authentication).
+- **Tiny private team without email delivery:** set `ALLOWED_EMAILS=alice@company.com,bob@company.com` and `MULTICA_PRIVATE_LOGIN_CODE=246810`, then restart the backend. Allowlisted teammates still enter their own email first, but the second step uses the shared 6-digit private login code instead of email delivery.
 - **Without email configured:** the verification code is generated server-side and printed to the backend container logs (look for `[DEV] Verification code for ...:`). Useful for one-off testing on a single machine.
 - **Deterministic local/private testing:** set `APP_ENV=development` and `MULTICA_DEV_VERIFICATION_CODE=888888` in `.env`, then restart the backend. This fixed code is ignored when `APP_ENV=production`.
 

@@ -1,9 +1,12 @@
 # --- Build stage ---
 FROM golang:1.26-alpine AS builder
 
-RUN apk add --no-cache git
-
 WORKDIR /src
+
+ARG GOPROXY=https://proxy.golang.org,direct
+ARG GOSUMDB=sum.golang.org
+ENV GOPROXY=${GOPROXY}
+ENV GOSUMDB=${GOSUMDB}
 
 # Cache dependencies
 COPY server/go.mod server/go.sum ./server/
@@ -21,8 +24,10 @@ RUN cd server && CGO_ENABLED=0 go build -ldflags "-s -w" -o bin/migrate ./cmd/mi
 
 # --- Runtime stage ---
 FROM alpine:3.21
-
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache \
+    --repository=${ALPINE_MAIN_REPO} \
+    --repository=${ALPINE_COMMUNITY_REPO} \
+    ca-certificates tzdata
 
 WORKDIR /app
 

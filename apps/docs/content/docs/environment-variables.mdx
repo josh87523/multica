@@ -41,8 +41,11 @@ Multica uses [Resend](https://resend.com/) to send verification codes and invite
 |---|---|---|
 | `RESEND_API_KEY` | empty | Resend API key |
 | `RESEND_FROM_EMAIL` | `noreply@multica.ai` | Sender address (must be a domain verified in your Resend account) |
+| `MULTICA_PRIVATE_LOGIN_CODE` | empty | Fixed 6-digit login code for tiny private teams. Only takes effect when `ALLOWED_EMAILS` is non-empty |
 
 **Behavior when `RESEND_API_KEY` is unset**: the server does not error, but every email that should have been sent (verification codes, invite links) **is written to the server's stdout only**. Convenient for local development — copy the code out of the server logs; **in production, forgetting to set this creates a silent black hole**, with users never receiving email and no error surfaced.
+
+**Behavior when `MULTICA_PRIVATE_LOGIN_CODE` is set**: the sign-in flow switches to "email + fixed 6-digit code". Users still enter their own email first, but the verification step no longer depends on email delivery. This mode is only intended for tightly allowlisted private instances with a very small number of users.
 
 ## Google OAuth configuration
 

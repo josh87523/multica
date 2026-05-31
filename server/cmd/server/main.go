@@ -133,6 +133,16 @@ func main() {
 			slog.Warn("MULTICA_DEV_VERIFICATION_CODE is enabled. Use it only for local development or private test instances.")
 		}
 	}
+	if privateCode := strings.TrimSpace(os.Getenv("MULTICA_PRIVATE_LOGIN_CODE")); privateCode != "" {
+		allowedEmails := strings.TrimSpace(os.Getenv("ALLOWED_EMAILS"))
+		if allowedEmails == "" {
+			slog.Warn("MULTICA_PRIVATE_LOGIN_CODE is set without ALLOWED_EMAILS. The private login shortcut will be ignored.")
+		} else if len(privateCode) != 6 || strings.Trim(privateCode, "0123456789") != "" {
+			slog.Warn("MULTICA_PRIVATE_LOGIN_CODE must be exactly 6 digits. The private login shortcut will be ignored.")
+		} else {
+			slog.Warn("MULTICA_PRIVATE_LOGIN_CODE is enabled. Use it only for tightly allowlisted private instances.")
+		}
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

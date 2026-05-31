@@ -59,6 +59,7 @@ function LoginPageContent() {
   const qc = useQueryClient();
   const { t } = useT("auth");
   const googleClientId = useConfigStore((state) => state.googleClientId);
+  const privateLoginMode = useConfigStore((state) => state.privateLoginMode);
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const searchParams = useSearchParams();
@@ -203,6 +204,7 @@ function LoginPageContent() {
           : undefined
       }
       onTokenObtained={setLoggedInCookie}
+      privateLoginMode={privateLoginMode}
       extra={
         <span className="text-xs text-muted-foreground">
           {t(($) => $.web.prefer_desktop)}{" "}
