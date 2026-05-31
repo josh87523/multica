@@ -155,7 +155,7 @@ describe("useIssueTimeline", () => {
     expect(result.current.submitComment).toBe(first.submitComment);
   });
 
-  it("flattens DESC pages into ASC timeline order", () => {
+  it("keeps DESC pages in newest-first timeline order", () => {
     queryState.data = {
       pages: [
         // Latest page: DESC.
@@ -179,8 +179,8 @@ describe("useIssueTimeline", () => {
     };
     const { result } = renderHook(() => useIssueTimeline("issue-1", "user-1"));
     const ids = result.current.timeline.map((e) => e.id);
-    // ASC: oldest at top, newest at bottom.
-    expect(ids).toEqual(["c1", "c2", "c3"]);
+    // DESC: newest at top, oldest at bottom.
+    expect(ids).toEqual(["c3", "c2", "c1"]);
   });
 
   it("reports isAtLatest=true when first page has no newer entries", () => {

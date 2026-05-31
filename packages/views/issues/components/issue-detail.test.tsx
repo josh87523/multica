@@ -388,8 +388,8 @@ describe("IssueDetail (shared)", () => {
     mockViewport.isMobile = false;
     // Default: issue loads successfully
     mockApiObj.getIssue.mockResolvedValue(mockIssue);
-    // Cursor-paginated timeline endpoint returns a TimelinePage. The DESC
-    // order is required because the hook reverses pages → ASC for the UI.
+    // Cursor-paginated timeline endpoint returns a TimelinePage in DESC
+    // order, and the UI now preserves that newest-first display.
     const descTimeline = [...mockTimeline].sort((a, b) =>
       b.created_at.localeCompare(a.created_at),
     );
@@ -521,6 +521,17 @@ describe("IssueDetail (shared)", () => {
     });
 
     expect(screen.getByText("I can help with this")).toBeInTheDocument();
+  });
+
+  it("shows newest timeline comments first by default", async () => {
+    renderIssueDetail();
+
+    const newer = await screen.findByText("I can help with this");
+    const older = screen.getByText("Started working on this");
+
+    expect(
+      newer.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("sends empty description when editor is cleared", async () => {

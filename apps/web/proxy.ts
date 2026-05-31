@@ -17,6 +17,8 @@ const LEGACY_ROUTE_SEGMENTS = new Set([
   "settings",
 ]);
 
+const LOCAL_AUTOLOGIN_COOKIE = "multica_local_autologin";
+
 // Resolve the active locale per request. Cookie wins over Accept-Language;
 // matchLocale() falls back to DEFAULT_LOCALE when neither yields a match.
 function resolveLocale(req: NextRequest): string {
@@ -41,6 +43,22 @@ function nextWithLocale(req: NextRequest): NextResponse {
   return NextResponse.next({ request: { headers } });
 }
 
+function localAutologinEnabled(): boolean {
+  return process.env.MULTICA_LOCAL_AUTOLOGIN_ENABLED === "true";
+}
+
+function localAutologinWorkspaceSlug(): string {
+  return process.env.MULTICA_LOCAL_AUTOLOGIN_WORKSPACE_SLUG || "camus-workspace-pilot";
+}
+
+function isAuthPath(pathname: string): boolean {
+  return (
+    pathname === "/login" ||
+    pathname === "/local-autologin" ||
+    pathname.startsWith("/auth/")
+  );
+}
+
 // Next.js 16 renamed `middleware` → `proxy`. API surface (NextRequest /
 // NextResponse / cookies / matcher) is identical; the only behavioral
 // change is the runtime — proxy is forced to nodejs and cannot opt into
@@ -48,7 +66,22 @@ function nextWithLocale(req: NextRequest): NextResponse {
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hasSession = req.cookies.has("multica_logged_in");
+  const hasAuthCookie = req.cookies.has("multica_auth");
+  const hasLocalAutologin = req.cookies.has(LOCAL_AUTOLOGIN_COOKIE);
   const lastSlug = req.cookies.get("last_workspace_slug")?.value;
+  const localWorkspacePath = `/${localAutologinWorkspaceSlug()}/`;
+
+  if (
+    localAutologinEnabled() &&
+    !isAuthPath(pathname) &&
+    ((!hasSession && !hasAuthCookie) ||
+      (!hasLocalAutologin && pathname.startsWith(localWorkspacePath)))
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/local-autologin";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   // --- Legacy URL redirect: /issues/... → /{slug}/issues/... ---
   // Old bookmarks and clients that hit us before the slug migration would

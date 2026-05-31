@@ -1000,18 +1000,32 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
               <TimelineSkeleton />
             ) : (
             <>
-            {hasMoreOlder && (
+            {(hasMoreNewer || !isAtLatest) && (
               <div className="my-4 flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <button
-                  onClick={fetchOlder}
-                  disabled={isFetchingOlder}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                >
-                  {isFetchingOlder
-                    ? t(($) => $.timeline.loading)
-                    : t(($) => $.timeline.show_older)}
-                </button>
+                {hasMoreNewer && (
+                  <button
+                    onClick={fetchNewer}
+                    disabled={isFetchingNewer}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    {isFetchingNewer
+                      ? t(($) => $.timeline.loading)
+                      : t(($) => $.timeline.show_newer)}
+                  </button>
+                )}
+                {!isAtLatest && (
+                  <button
+                    onClick={jumpToLatest}
+                    className="text-xs font-medium text-foreground hover:text-foreground/80 transition-colors"
+                  >
+                    {newEntriesBelowCount > 0
+                      ? t(($) => $.timeline.jump_to_latest_with_count, {
+                          count: newEntriesBelowCount,
+                        })
+                      : t(($) => $.timeline.jump_to_latest)}
+                  </button>
+                )}
                 <div className="h-px flex-1 bg-border" />
               </div>
             )}
@@ -1084,31 +1098,17 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
                 );
               })}
             </div>
-            {(hasMoreNewer || !isAtLatest) && (
+            {hasMoreOlder && (
               <div className="mt-4 flex items-center justify-center gap-4">
-                {hasMoreNewer && (
-                  <button
-                    onClick={fetchNewer}
-                    disabled={isFetchingNewer}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                  >
-                    {isFetchingNewer
-                      ? t(($) => $.timeline.loading)
-                      : t(($) => $.timeline.show_newer)}
-                  </button>
-                )}
-                {!isAtLatest && (
-                  <button
-                    onClick={jumpToLatest}
-                    className="text-xs font-medium text-foreground hover:text-foreground/80 transition-colors"
-                  >
-                    {newEntriesBelowCount > 0
-                      ? t(($) => $.timeline.jump_to_latest_with_count, {
-                          count: newEntriesBelowCount,
-                        })
-                      : t(($) => $.timeline.jump_to_latest)}
-                  </button>
-                )}
+                <button
+                  onClick={fetchOlder}
+                  disabled={isFetchingOlder}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  {isFetchingOlder
+                    ? t(($) => $.timeline.loading)
+                    : t(($) => $.timeline.show_older)}
+                </button>
               </div>
             )}
             </>

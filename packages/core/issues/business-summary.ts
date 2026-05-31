@@ -2,6 +2,13 @@ import type { Issue } from "../types";
 
 const SECTION_RE = /^##\s+(.+?)\s*$/gm;
 const TITLE_LIMIT = 180;
+const GENERIC_SECTION_PATTERNS = [
+  /这条记录来自人工维护的 TODO \/ backlog 文档/,
+  /它代表 .* 当前仍未闭环的业务、产品或交付缺口/,
+  /原始记录没有结构化方案时，先按这条问题补齐负责人、验收标准和下一步/,
+  /围绕「.*」补齐负责人、验收标准和下一步/,
+  /下一步：回到 .*补齐负责人、验收标准、验证命令/,
+];
 
 export interface IssueBusinessSummary {
   problem: string;
@@ -40,6 +47,10 @@ export function issueBusinessSummary(issue: Issue): IssueBusinessSummary {
   };
 }
 
+function isGenericBusinessSection(value: string): boolean {
+  return GENERIC_SECTION_PATTERNS.some((pattern) => pattern.test(value));
+}
+
 function clampTitle(value: string): string {
   const text = value.trim();
   if (text.length <= TITLE_LIMIT) return text;
@@ -68,9 +79,11 @@ function cleanMarkdownPreview(markdown: string | null | undefined): string {
 
 export function issueCardDescription(issue: Issue): string {
   const summary = issueBusinessSummary(issue);
+  if (summary.solution && !isGenericBusinessSection(summary.solution)) return `处理方案：${summary.solution}`;
+  if (summary.reason && !isGenericBusinessSection(summary.reason)) return `原因：${summary.reason}`;
+  if (summary.problem) return summary.problem;
   if (summary.solution) return `处理方案：${summary.solution}`;
   if (summary.reason) return `原因：${summary.reason}`;
-  if (summary.problem) return summary.problem;
   return cleanMarkdownPreview(issue.description);
 }
 
