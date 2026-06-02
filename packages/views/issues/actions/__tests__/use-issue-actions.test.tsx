@@ -57,8 +57,10 @@ vi.mock("@multica/core/pins", () => ({
 }));
 
 const mockUpdateMutate = vi.fn();
+const mockCreateCommentMutateAsync = vi.fn();
 vi.mock("@multica/core/issues/mutations", () => ({
   useUpdateIssue: () => ({ mutate: mockUpdateMutate }),
+  useCreateComment: () => ({ mutateAsync: mockCreateCommentMutateAsync }),
 }));
 
 vi.mock("@multica/core/paths", async () => {
@@ -120,6 +122,8 @@ function wrapper({ children }: { children: React.ReactNode }) {
 beforeEach(() => {
   mockOpenModal.mockReset();
   mockUpdateMutate.mockReset();
+  mockCreateCommentMutateAsync.mockReset();
+  mockCreateCommentMutateAsync.mockResolvedValue({});
   mockCreatePinMutate.mockReset();
   mockDeletePinMutate.mockReset();
   pinListRef.value = [];
@@ -185,6 +189,19 @@ describe("useIssueActions", () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "https://app.multica.com/test/issues/issue-1",
     );
+  });
+
+  it("requestOrchestration writes the expected control comment", async () => {
+    const { result } = renderHook(() => useIssueActions(mockIssue), { wrapper });
+
+    await act(async () => {
+      await result.current.requestOrchestration("dispatch");
+    });
+
+    expect(mockCreateCommentMutateAsync).toHaveBeenCalledWith({
+      content: "/orchestrate dispatch",
+      type: "comment",
+    });
   });
 
   it("openSetParent / openAddChild / openDeleteConfirm / openCreateSubIssue open the correct modal with payload", () => {

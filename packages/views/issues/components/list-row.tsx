@@ -7,6 +7,7 @@ import type { Issue } from "@multica/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useIssueSelectionStore } from "@multica/core/issues/stores/selection-store";
 import { issueCardDescription, issueDisplayTitle } from "@multica/core/issues/business-summary";
+import { orchestrationBadgeLabel } from "../utils/orchestration";
 import { useWorkspacePaths } from "@multica/core/paths";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { useViewStore } from "@multica/core/issues/stores/view-store-context";
@@ -56,6 +57,7 @@ export const ListRow = memo(function ListRow({
   const showDueDate = storeProperties.dueDate && issue.due_date;
   const showLabels = storeProperties.labels && labels.length > 0;
   const workspaceControl = issue.workspace_control;
+  const orchestrationLabel = orchestrationBadgeLabel(issue);
   const rowDescription = issueCardDescription(issue);
   const displayTitle = issueDisplayTitle(issue);
 
@@ -108,6 +110,11 @@ export const ListRow = memo(function ListRow({
                 title={workspaceControl.error ?? workspaceControl.source_id}
               >
                 {workspaceControl.status ?? (workspaceControl.writable ? "workspace" : "read-only")}
+              </span>
+            )}
+            {orchestrationLabel && (
+              <span className="inline-flex shrink-0 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                {orchestrationLabel}
               </span>
             )}
             {showChildProgress && (

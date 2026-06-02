@@ -309,6 +309,7 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	// Trigger @mentioned agents: parse agent mentions and enqueue tasks for each.
 	// Pass parentComment so that replies inherit mentions from the thread root.
 	h.enqueueMentionedAgentTasks(r.Context(), issue, comment, parentComment, authorType, authorID)
+	h.dispatchIssueCommentWebhook(r.Context(), issue, comment, authorType, authorID, req.ParentID)
 
 	writeJSON(w, http.StatusCreated, resp)
 }

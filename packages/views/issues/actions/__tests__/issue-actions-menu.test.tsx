@@ -7,6 +7,7 @@ import enCommon from "../../../locales/en/common.json";
 import enIssues from "../../../locales/en/issues.json";
 
 const TEST_RESOURCES = { en: { common: enCommon, issues: enIssues } };
+const mockCreateCommentMutateAsync = vi.fn();
 
 // ---------------------------------------------------------------------------
 // Mocks — same pattern as the issue-detail test suite.
@@ -61,6 +62,7 @@ vi.mock("@multica/core/pins", () => ({
 
 vi.mock("@multica/core/issues/mutations", () => ({
   useUpdateIssue: () => ({ mutate: vi.fn() }),
+  useCreateComment: () => ({ mutateAsync: mockCreateCommentMutateAsync }),
 }));
 
 vi.mock("@multica/core/paths", async () => {
@@ -129,6 +131,8 @@ function wrap(ui: React.ReactNode) {
 
 beforeEach(() => {
   mockOpenModal.mockReset();
+  mockCreateCommentMutateAsync.mockReset();
+  mockCreateCommentMutateAsync.mockResolvedValue({});
 });
 
 describe("IssueActionsDropdown", () => {
@@ -145,17 +149,19 @@ describe("IssueActionsDropdown", () => {
     fireEvent.click(screen.getByTestId("trigger"));
 
     // Base UI portals the popup; role=menu lands on the popup wrapper.
-    expect(await screen.findByText("Status")).toBeInTheDocument();
-    expect(screen.getByText("Priority")).toBeInTheDocument();
-    expect(screen.getByText("Assignee")).toBeInTheDocument();
-    expect(screen.getByText("Due date")).toBeInTheDocument();
-    expect(screen.getByText("Copy link")).toBeInTheDocument();
-    expect(screen.getByText("More")).toBeInTheDocument();
-    expect(screen.getByText("Delete issue")).toBeInTheDocument();
+    expect(await screen.findByText("Status")).toBeTruthy();
+    expect(screen.getByText("Priority")).toBeTruthy();
+    expect(screen.getByText("Assignee")).toBeTruthy();
+    expect(screen.getByText("Due date")).toBeTruthy();
+    expect(screen.getByText("Copy link")).toBeTruthy();
+    expect(screen.getByText("Run agent flow")).toBeTruthy();
+    expect(screen.getByText("Approve build")).toBeTruthy();
+    expect(screen.getByText("More")).toBeTruthy();
+    expect(screen.getByText("Delete issue")).toBeTruthy();
     // Relationship actions are hidden inside the "More" submenu by default.
-    expect(screen.queryByText("Create sub-issue")).not.toBeInTheDocument();
-    expect(screen.queryByText("Set parent issue...")).not.toBeInTheDocument();
-    expect(screen.queryByText("Add sub-issue...")).not.toBeInTheDocument();
+    expect(screen.queryByText("Create sub-issue")).toBeNull();
+    expect(screen.queryByText("Set parent issue...")).toBeNull();
+    expect(screen.queryByText("Add sub-issue...")).toBeNull();
   });
 
   it("clicking Delete issue opens the delete-confirm modal", async () => {
@@ -179,6 +185,25 @@ describe("IssueActionsDropdown", () => {
       onDeletedNavigateTo: "/test/issues",
     });
   });
+
+  it("clicking Run agent flow writes an orchestration comment", async () => {
+    render(
+      wrap(
+        <IssueActionsDropdown
+          issue={mockIssue}
+          trigger={<button data-testid="trigger">Menu</button>}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTestId("trigger"));
+    fireEvent.click(await screen.findByText("Run agent flow"));
+
+    expect(mockCreateCommentMutateAsync).toHaveBeenCalledWith({
+      content: "/orchestrate dispatch",
+      type: "comment",
+    });
+  });
 });
 
 describe("IssueActionsContextMenu", () => {
@@ -193,7 +218,7 @@ describe("IssueActionsContextMenu", () => {
 
     fireEvent.contextMenu(screen.getByTestId("row"));
 
-    expect(await screen.findByText("Status")).toBeInTheDocument();
-    expect(screen.getByText("Delete issue")).toBeInTheDocument();
+    expect(await screen.findByText("Status")).toBeTruthy();
+    expect(screen.getByText("Delete issue")).toBeTruthy();
   });
 });
