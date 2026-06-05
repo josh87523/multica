@@ -4,6 +4,8 @@
 
 核心目标很简单：让 agent 像同事一样接任务、汇报、交付、复盘，同时避免把“跑过测试”“开了 PR”“合并了代码”“线上可用”“项目管理系统已同步”混成同一件事。
 
+如果要把同事自己的 agent 接入这套流程，并开启 issue 分配、comment @mention、autopilot 等自动触发入口，先看 [Agent 接入与自动触发 Runbook](agent-onboarding-and-auto-trigger.md)。
+
 ## 适用范围
 
 适合：
