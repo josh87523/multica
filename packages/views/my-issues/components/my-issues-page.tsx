@@ -12,7 +12,7 @@ import { WorkspaceAvatar } from "../../workspace/workspace-avatar";
 import { useQuery } from "@tanstack/react-query";
 import { agentListOptions } from "@multica/core/workspace/queries";
 import { filterIssues } from "../../issues/utils/filter";
-import { MY_ISSUES_BOARD_STATUSES } from "@multica/core/issues/config";
+import { BOARD_STATUSES } from "@multica/core/issues/config";
 import { ViewStoreProvider } from "@multica/core/issues/stores/view-store-context";
 import { useIssueSelectionStore } from "@multica/core/issues/stores/selection-store";
 import { BoardView } from "../../issues/components/board-view";
@@ -94,12 +94,12 @@ export function MyIssuesPage() {
 
   const visibleStatuses = useMemo(() => {
     if (statusFilters.length > 0)
-      return MY_ISSUES_BOARD_STATUSES.filter((s) => statusFilters.includes(s));
-    return MY_ISSUES_BOARD_STATUSES;
+      return BOARD_STATUSES.filter((s) => statusFilters.includes(s));
+    return BOARD_STATUSES;
   }, [statusFilters]);
 
   const hiddenStatuses = useMemo(() => {
-    return MY_ISSUES_BOARD_STATUSES.filter((s) => !visibleStatuses.includes(s));
+    return BOARD_STATUSES.filter((s) => !visibleStatuses.includes(s));
   }, [visibleStatuses]);
 
   const updateIssueMutation = useUpdateIssue();

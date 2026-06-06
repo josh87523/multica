@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { BOARD_STATUSES, MY_ISSUES_BOARD_STATUSES } from "./status";
+import { ACTIVE_BOARD_STATUSES, ALL_STATUSES, BOARD_STATUSES, STATUS_ORDER } from "./status";
 
 describe("issue status board order", () => {
-  it("keeps workspace boards planning-first while My Issues starts with actionable work", () => {
-    expect(BOARD_STATUSES[0]).toBe("backlog");
-    expect(MY_ISSUES_BOARD_STATUSES).toEqual([
+  it("uses the same actionable-first order across status lists and board columns", () => {
+    const workflowStatuses = [
       "todo",
       "backlog",
       "in_progress",
@@ -12,6 +11,11 @@ describe("issue status board order", () => {
       "review",
       "done",
       "blocked",
-    ]);
+    ];
+
+    expect(STATUS_ORDER).toEqual([...workflowStatuses, "cancelled"]);
+    expect(ALL_STATUSES).toEqual([...workflowStatuses, "cancelled"]);
+    expect(BOARD_STATUSES).toEqual(workflowStatuses);
+    expect(ACTIVE_BOARD_STATUSES).toEqual(workflowStatuses);
   });
 });

@@ -21,7 +21,7 @@ Private agents can only be assigned to issues by workspace owners and admins. Fo
 
 ## Status
 
-Multica has seven statuses. **Any status can move directly to any other** — Multica doesn't impose a workflow, and won't stop you from jumping from `backlog` straight to `done`.
+Multica has eight statuses. **Any status can move directly to any other** — Multica doesn't impose a workflow, and won't stop you from jumping from `backlog` straight to `done`.
 
 | Status | Meaning |
 |---|---|
@@ -29,11 +29,12 @@ Multica has seven statuses. **Any status can move directly to any other** — Mu
 | `todo` | Scheduled, ready to start |
 | `in_progress` | Being worked on |
 | `in_review` | Awaiting review |
+| `review` | Final review |
 | `done` | Completed |
 | `blocked` | Stuck on an external factor |
 | `cancelled` | Cancelled |
 
-Once an issue is assigned to an agent, the agent automatically moves the status from `backlog` / `todo` to `in_progress`, then to `done` on completion. You can also change it manually at any time.
+Once an issue is assigned to an agent, the agent automatically moves the status from `todo` / `backlog` to `in_progress`, then to `done` on completion. You can also change it manually at any time.
 
 ## Priority
 

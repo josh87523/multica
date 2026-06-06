@@ -1,8 +1,8 @@
 import type { IssueStatus } from "../../types";
 
 export const STATUS_ORDER: IssueStatus[] = [
-  "backlog",
   "todo",
+  "backlog",
   "in_progress",
   "in_review",
   "review",
@@ -12,8 +12,8 @@ export const STATUS_ORDER: IssueStatus[] = [
 ];
 
 export const ALL_STATUSES: IssueStatus[] = [
-  "backlog",
   "todo",
+  "backlog",
   "in_progress",
   "in_review",
   "review",
@@ -24,17 +24,6 @@ export const ALL_STATUSES: IssueStatus[] = [
 
 /** Statuses shown as board columns (excludes cancelled). */
 export const BOARD_STATUSES: IssueStatus[] = [
-  "backlog",
-  "todo",
-  "in_progress",
-  "in_review",
-  "review",
-  "done",
-  "blocked",
-];
-
-/** My Issues is an execution queue, so actionable work starts before planning/design. */
-export const MY_ISSUES_BOARD_STATUSES: IssueStatus[] = [
   "todo",
   "backlog",
   "in_progress",
@@ -44,10 +33,10 @@ export const MY_ISSUES_BOARD_STATUSES: IssueStatus[] = [
   "blocked",
 ];
 
-/** Default board slice: show every business stage in the workspace control board. */
+/** Default board slice: show every business stage in workflow order. */
 export const ACTIVE_BOARD_STATUSES: IssueStatus[] = [
-  "backlog",
   "todo",
+  "backlog",
   "in_progress",
   "in_review",
   "review",
