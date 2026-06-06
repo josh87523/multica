@@ -33,6 +33,17 @@ export const BOARD_STATUSES: IssueStatus[] = [
   "blocked",
 ];
 
+/** My Issues is an execution queue, so actionable work starts before planning/design. */
+export const MY_ISSUES_BOARD_STATUSES: IssueStatus[] = [
+  "todo",
+  "backlog",
+  "in_progress",
+  "in_review",
+  "review",
+  "done",
+  "blocked",
+];
+
 /** Default board slice: show every business stage in the workspace control board. */
 export const ACTIVE_BOARD_STATUSES: IssueStatus[] = [
   "backlog",
