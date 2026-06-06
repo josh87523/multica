@@ -333,7 +333,7 @@ func (q *Queries) ListCommentsLatest(ctx context.Context, arg ListCommentsLatest
 const listCommentsPaginated = `-- name: ListCommentsPaginated :many
 SELECT id, issue_id, author_type, author_id, content, type, created_at, updated_at, parent_id, workspace_id FROM comment
 WHERE issue_id = $1 AND workspace_id = $2
-ORDER BY created_at ASC
+ORDER BY created_at DESC, id DESC
 LIMIT $3 OFFSET $4
 `
 
@@ -383,7 +383,7 @@ func (q *Queries) ListCommentsPaginated(ctx context.Context, arg ListCommentsPag
 const listCommentsSince = `-- name: ListCommentsSince :many
 SELECT id, issue_id, author_type, author_id, content, type, created_at, updated_at, parent_id, workspace_id FROM comment
 WHERE issue_id = $1 AND workspace_id = $2 AND created_at > $3
-ORDER BY created_at ASC
+ORDER BY created_at DESC, id DESC
 `
 
 type ListCommentsSinceParams struct {
@@ -426,7 +426,7 @@ func (q *Queries) ListCommentsSince(ctx context.Context, arg ListCommentsSincePa
 const listCommentsSincePaginated = `-- name: ListCommentsSincePaginated :many
 SELECT id, issue_id, author_type, author_id, content, type, created_at, updated_at, parent_id, workspace_id FROM comment
 WHERE issue_id = $1 AND workspace_id = $2 AND created_at > $3
-ORDER BY created_at ASC
+ORDER BY created_at DESC, id DESC
 LIMIT $4 OFFSET $5
 `
 

@@ -902,6 +902,78 @@ func TestCommentCRUD(t *testing.T) {
 	testHandler.DeleteIssue(w, req)
 }
 
+func TestListCommentsNewestFirst(t *testing.T) {
+	ctx := context.Background()
+	w := httptest.NewRecorder()
+	req := newRequest("POST", "/api/issues?workspace_id="+testWorkspaceID, map[string]any{
+		"title": "Comment order test issue",
+	})
+	testHandler.CreateIssue(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("CreateIssue: expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+	var issue IssueResponse
+	json.NewDecoder(w.Body).Decode(&issue)
+	issueID := issue.ID
+	defer func() {
+		cleanupReq := newRequest("DELETE", "/api/issues/"+issueID, nil)
+		cleanupReq = withURLParam(cleanupReq, "id", issueID)
+		testHandler.DeleteIssue(httptest.NewRecorder(), cleanupReq)
+	}()
+
+	base := time.Date(2026, 6, 6, 10, 0, 0, 0, time.UTC)
+	rows := []struct {
+		content string
+		at      time.Time
+	}{
+		{"oldest comment", base},
+		{"middle comment", base.Add(time.Hour)},
+		{"newest comment", base.Add(2 * time.Hour)},
+	}
+	for _, row := range rows {
+		if _, err := testPool.Exec(ctx, `
+			INSERT INTO comment (issue_id, workspace_id, author_type, author_id, content, type, created_at, updated_at)
+			VALUES ($1, $2, 'member', $3, $4, 'comment', $5, $5)
+		`, issueID, testWorkspaceID, testUserID, row.content, row.at); err != nil {
+			t.Fatalf("seed comment %q: %v", row.content, err)
+		}
+	}
+
+	fetch := func(query string) []CommentResponse {
+		t.Helper()
+		w := httptest.NewRecorder()
+		req := newRequest("GET", "/api/issues/"+issueID+"/comments"+query, nil)
+		req = withURLParam(req, "id", issueID)
+		testHandler.ListComments(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("ListComments%s: expected 200, got %d: %s", query, w.Code, w.Body.String())
+		}
+		var comments []CommentResponse
+		if err := json.NewDecoder(w.Body).Decode(&comments); err != nil {
+			t.Fatalf("decode comments: %v", err)
+		}
+		return comments
+	}
+
+	assertContents := func(label string, comments []CommentResponse, want []string) {
+		t.Helper()
+		if len(comments) != len(want) {
+			t.Fatalf("%s: expected %d comments, got %d", label, len(want), len(comments))
+		}
+		for i, expected := range want {
+			if comments[i].Content != expected {
+				t.Fatalf("%s: comments[%d] = %q, want %q", label, i, comments[i].Content, expected)
+			}
+		}
+	}
+
+	assertContents("default", fetch(""), []string{"newest comment", "middle comment", "oldest comment"})
+	assertContents("limit offset", fetch("?limit=2&offset=1"), []string{"middle comment", "oldest comment"})
+
+	since := base.Add(30 * time.Minute).Format(time.RFC3339)
+	assertContents("since", fetch("?since="+since), []string{"newest comment", "middle comment"})
+}
+
 func TestCreateCommentRejectsMalformedParentID(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := newRequest("POST", "/api/issues?workspace_id="+testWorkspaceID, map[string]any{

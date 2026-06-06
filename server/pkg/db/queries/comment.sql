@@ -1,18 +1,18 @@
 -- name: ListCommentsPaginated :many
 SELECT * FROM comment
 WHERE issue_id = $1 AND workspace_id = $2
-ORDER BY created_at ASC
+ORDER BY created_at DESC, id DESC
 LIMIT $3 OFFSET $4;
 
 -- name: ListCommentsSince :many
 SELECT * FROM comment
 WHERE issue_id = $1 AND workspace_id = $2 AND created_at > $3
-ORDER BY created_at ASC;
+ORDER BY created_at DESC, id DESC;
 
 -- name: ListCommentsSincePaginated :many
 SELECT * FROM comment
 WHERE issue_id = $1 AND workspace_id = $2 AND created_at > $3
-ORDER BY created_at ASC
+ORDER BY created_at DESC, id DESC
 LIMIT $4 OFFSET $5;
 
 -- name: ListCommentsLatest :many
