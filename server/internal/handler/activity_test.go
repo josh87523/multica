@@ -288,7 +288,7 @@ func TestListTimeline_MergedCommentAndActivity(t *testing.T) {
 // contract for clients that predate cursor pagination (#2128). They call
 // /timeline with no query string and read the body as TimelineEntry[]
 // directly — returning the new wrapped shape there is what caused #2143 /
-// #2147. Asserts: array shape, ASC order, "[]" (not "null") on empty issue.
+// #2147. Asserts: array shape, DESC order, "[]" (not "null") on empty issue.
 func TestListTimeline_LegacyShapeForPreCursorClients(t *testing.T) {
 	issueID := createIssueForTimeline(t, "Legacy compat test")
 	seedTimelineEntries(t, issueID, 3, 2) // 5 total
@@ -310,8 +310,8 @@ func TestListTimeline_LegacyShapeForPreCursorClients(t *testing.T) {
 		t.Fatalf("expected 5 entries (3 comments + 2 activities), got %d", len(entries))
 	}
 	for i := 1; i < len(entries); i++ {
-		if entries[i-1].CreatedAt > entries[i].CreatedAt {
-			t.Fatalf("legacy contract requires ASC order, got %s before %s",
+		if entries[i-1].CreatedAt < entries[i].CreatedAt {
+			t.Fatalf("legacy contract requires DESC order, got %s before %s",
 				entries[i-1].CreatedAt, entries[i].CreatedAt)
 		}
 	}
