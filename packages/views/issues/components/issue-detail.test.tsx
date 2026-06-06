@@ -214,9 +214,9 @@ vi.mock("@multica/core/api", () => ({
 
 // Mock issue config
 vi.mock("@multica/core/issues/config", () => ({
-  ALL_STATUSES: ["backlog", "todo", "in_progress", "in_review", "review", "done", "blocked", "cancelled"],
-  BOARD_STATUSES: ["backlog", "todo", "in_progress", "in_review", "review", "done", "blocked"],
-  STATUS_ORDER: ["backlog", "todo", "in_progress", "in_review", "review", "done", "blocked", "cancelled"],
+  ALL_STATUSES: ["todo", "backlog", "in_progress", "in_review", "review", "done", "blocked", "cancelled"],
+  BOARD_STATUSES: ["todo", "backlog", "in_progress", "in_review", "review", "done", "blocked"],
+  STATUS_ORDER: ["todo", "backlog", "in_progress", "in_review", "review", "done", "blocked", "cancelled"],
   STATUS_CONFIG: {
     backlog: { label: "Backlog", iconColor: "text-muted-foreground", hoverBg: "hover:bg-accent" },
     todo: { label: "Todo", iconColor: "text-muted-foreground", hoverBg: "hover:bg-accent" },

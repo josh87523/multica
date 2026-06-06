@@ -23,6 +23,7 @@ import { Textarea } from "@multica/ui/components/ui/textarea";
 import { cn } from "@multica/ui/lib/utils";
 import { AppLink } from "../../navigation";
 import { PageHeader } from "../../layout/page-header";
+import { useT } from "../../i18n";
 
 type TimelineEntry =
   | { id: string; role: "user"; text: string }
@@ -35,6 +36,7 @@ type TimelineEntry =
     };
 
 export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
+  const { t } = useT("chat");
   const wsId = useWorkspaceId();
   const wsPaths = useWorkspacePaths();
   const queryClient = useQueryClient();
@@ -232,10 +234,10 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
           </AppLink>
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              LOFTER Pure Chat
+              {t(($) => $.project_workbench.eyebrow)}
             </div>
             <div className="truncate text-sm font-medium">
-              {context?.project_title ?? "Loading project..."}
+              {context?.project_title ?? t(($) => $.project_workbench.loading_project)}
             </div>
           </div>
         </div>
@@ -243,7 +245,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
           href={wsPaths.projectDetail(projectId)}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
-          返回项目详情
+          {t(($) => $.project_workbench.back_to_project)}
         </AppLink>
       </PageHeader>
 
@@ -253,10 +255,10 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <MessageSquareText className="size-4 text-amber-600" />
-                纯聊天工作台
+                {t(($) => $.project_workbench.title)}
               </CardTitle>
               <CardDescription>
-                首版先打通项目上下文、Ask/Shape/Create/Operate 路由和 Operate 隔离。
+                {t(($) => $.project_workbench.description)}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2 pt-0">
@@ -314,16 +316,16 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 <Textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="描述你想问的状态、要调整的风格，或要生成的 LOFTER 低风险创作动作"
+                  placeholder={t(($) => $.project_workbench.input_placeholder)}
                   className="min-h-28 resize-none border-slate-200 bg-white"
                 />
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-xs text-muted-foreground">
-                    Operate 类请求只会生成转交 payload，不会在这里直接执行。
+                    {t(($) => $.project_workbench.operate_hint)}
                   </div>
                   <Button onClick={submit} disabled={!draft.trim() || actionMutation.isPending}>
                     <Send className="mr-1.5 size-4" />
-                    提交
+                    {t(($) => $.project_workbench.submit)}
                   </Button>
                 </div>
               </div>
@@ -334,8 +336,12 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
         <div className="w-full shrink-0 space-y-4 lg:w-[360px]">
           <Card className="border-none bg-slate-950 text-slate-50 shadow-sm">
             <CardHeader className="pb-3">
-              <CardDescription className="text-slate-300">当前项目上下文</CardDescription>
-              <CardTitle className="text-lg">{context?.project_title ?? "加载中"}</CardTitle>
+              <CardDescription className="text-slate-300">
+                {t(($) => $.project_workbench.context_card_title)}
+              </CardDescription>
+              <CardTitle className="text-lg">
+                {context?.project_title ?? t(($) => $.project_workbench.loading)}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex flex-wrap gap-2">
@@ -347,7 +353,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 </Badge>
               </div>
               <p className="leading-6 text-slate-200">
-                {isLoading ? "正在读取项目上下文..." : context?.status_summary}
+                {isLoading ? t(($) => $.project_workbench.reading_context) : context?.status_summary}
               </p>
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-200">
                 {context?.current_draft_label}
@@ -359,7 +365,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Sparkles className="size-4 text-amber-600" />
-                推荐下一步
+                {t(($) => $.project_workbench.next_actions_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -375,7 +381,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <ShieldAlert className="size-4 text-emerald-600" />
-                最近检查结果
+                {t(($) => $.project_workbench.latest_review_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -387,7 +393,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-3 py-3 text-muted-foreground">
-                  当前还没有最近检查结果。
+                  {t(($) => $.project_workbench.latest_review_empty)}
                 </div>
               )}
             </CardContent>
@@ -397,7 +403,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <CheckCircle2 className="size-4 text-emerald-600" />
-                资产快照
+                {t(($) => $.project_workbench.asset_snapshot_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -415,7 +421,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-3 py-3 text-muted-foreground">
-                  当前还没有明确写入的创作偏好，首版会先用项目描述和资源做协作。
+                  {t(($) => $.project_workbench.asset_snapshot_empty)}
                 </div>
               )}
             </CardContent>
@@ -425,7 +431,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <FileText className="size-4 text-sky-600" />
-                最近产物
+                {t(($) => $.project_workbench.latest_artifacts_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -444,7 +450,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-3 py-3 text-muted-foreground">
-                  当前还没有工作台生成的阶段产物。
+                  {t(($) => $.project_workbench.latest_artifacts_empty)}
                 </div>
               )}
             </CardContent>
@@ -454,7 +460,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <MessageSquareText className="size-4 text-emerald-600" />
-                最近动作
+                {t(($) => $.project_workbench.recent_actions_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -470,7 +476,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-3 py-3 text-muted-foreground">
-                  当前还没有可回看的最近动作。
+                  {t(($) => $.project_workbench.recent_actions_empty)}
                 </div>
               )}
             </CardContent>
@@ -480,7 +486,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <FileText className="size-4 text-sky-600" />
-                已挂接资源
+                {t(($) => $.project_workbench.attached_resources_title)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -496,7 +502,7 @@ export function ProjectChatWorkbench({ projectId }: { projectId: string }) {
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-3 py-3 text-muted-foreground">
-                  当前项目还没有挂接创作资源。
+                  {t(($) => $.project_workbench.attached_resources_empty)}
                 </div>
               )}
             </CardContent>
@@ -520,6 +526,7 @@ function ActionCard({
   isApplying?: boolean;
   onApplyPatch?: () => void;
 }) {
+  const { t } = useT("chat");
   const tone =
     action.action_type === "operate"
       ? "border-rose-200 bg-rose-50"
@@ -532,17 +539,17 @@ function ActionCard({
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline">{action.action_type.toUpperCase()}</Badge>
         <span className="text-sm font-medium">{action.result_title}</span>
-        {pending && <span className="text-xs text-muted-foreground">处理中</span>}
+        {pending && <span className="text-xs text-muted-foreground">{t(($) => $.project_workbench.processing_badge)}</span>}
         {action.normalized_payload.adapter_status === "live" && (
-          <span className="text-xs text-emerald-700">live adapter</span>
+          <span className="text-xs text-emerald-700">{t(($) => $.project_workbench.live_adapter_badge)}</span>
         )}
         {action.normalized_payload.adapter_status === "fallback" && (
-          <span className="text-xs text-amber-700">fallback</span>
+          <span className="text-xs text-amber-700">{t(($) => $.project_workbench.fallback_badge)}</span>
         )}
         {action.requires_confirmation && (
           <span className="inline-flex items-center gap-1 text-xs text-amber-700">
             <CheckCircle2 className="size-3.5" />
-            需要确认
+            {t(($) => $.project_workbench.confirmation_required_badge)}
           </span>
         )}
       </div>
@@ -558,7 +565,7 @@ function ActionCard({
       )}
       {extractStringList(action.normalized_payload.applied_rules).length > 0 && (
         <div className="mt-3 rounded-xl border border-slate-200 bg-white/70 p-3 text-xs text-slate-600">
-          <div className="font-medium text-slate-800">adapter 处理摘要</div>
+          <div className="font-medium text-slate-800">{t(($) => $.project_workbench.adapter_summary_title)}</div>
           <div className="mt-2 space-y-1">
             {extractStringList(action.normalized_payload.applied_rules).map((item) => (
               <div key={item}>{item}</div>
@@ -568,7 +575,7 @@ function ActionCard({
       )}
       {extractStringList(action.normalized_payload.quality_summary).length > 0 && (
         <div className="mt-3 rounded-xl border border-emerald-200 bg-white/70 p-3 text-xs text-slate-600">
-          <div className="font-medium text-slate-800">最近检查结果</div>
+          <div className="font-medium text-slate-800">{t(($) => $.project_workbench.quality_summary_title)}</div>
           <div className="mt-2 space-y-1">
             {extractStringList(action.normalized_payload.quality_summary).map((item) => (
               <div key={item}>{item}</div>
@@ -592,13 +599,13 @@ function ActionCard({
               disabled={!onApplyPatch || isApplying || action.normalized_payload.patch_applied === true}
             >
               {action.normalized_payload.patch_applied === true
-                ? "已写入偏好"
+                ? t(($) => $.project_workbench.patch_applied)
                 : isApplying
-                  ? "写入中..."
-                  : "写入偏好"}
+                  ? t(($) => $.project_workbench.patch_applying)
+                  : t(($) => $.project_workbench.patch_apply)}
             </Button>
             {action.normalized_payload.patch_applied === true && (
-              <span className="text-xs text-emerald-700">下次 Create/Shape 会直接带上这个长期约束</span>
+              <span className="text-xs text-emerald-700">{t(($) => $.project_workbench.patch_applied_hint)}</span>
             )}
           </div>
         </div>
@@ -611,7 +618,7 @@ function ActionCard({
           </div>
           <div className="mt-1">{action.operate_handoff.risk_reason}</div>
           <div className="mt-2 text-muted-foreground">
-            destination: {action.operate_handoff.destination}
+            {t(($) => $.project_workbench.destination_label)}: {action.operate_handoff.destination}
           </div>
         </div>
       )}
@@ -635,7 +642,9 @@ function formatArtifactRef(artifact: ProjectChatArtifact) {
     try {
       const parsed = JSON.parse(artifact.ref) as { url?: string };
       if (parsed.url) return parsed.url;
-    } catch {}
+    } catch {
+      return artifact.ref;
+    }
   }
   return artifact.ref;
 }

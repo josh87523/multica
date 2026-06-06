@@ -544,7 +544,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
                 )}
               >
                 <MessageSquareText className="mr-1.5 size-4" />
-                写作 Chat
+                {t(($) => $.detail.writing_chat)}
               </AppLink>
               <Button
                 variant="ghost"
