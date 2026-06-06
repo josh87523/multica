@@ -191,10 +191,6 @@ func (h *Handler) listTimelineLegacy(w http.ResponseWriter, r *http.Request, iss
 		return
 	}
 	entries := h.mergeTimelineDesc(r, comments, activities, legacyTimelineCap)
-	// Old contract: ASC (oldest → newest).
-	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
-		entries[i], entries[j] = entries[j], entries[i]
-	}
 	// Old client does `data: timeline = []` which defaults undefined, not
 	// null — render an empty issue as "[]" not "null".
 	if entries == nil {
