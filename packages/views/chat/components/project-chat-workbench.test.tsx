@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { I18nProvider } from "@multica/core/i18n/react";
 import type { ReactNode } from "react";
 import type { ProjectChatContext } from "@multica/core/types";
+import zhChat from "../../locales/zh-Hans/chat.json";
 
 const mockApi = vi.hoisted(() => ({
   getProjectChatContext: vi.fn(),
@@ -54,6 +56,8 @@ vi.mock("@multica/ui/components/ui/scroll-area", () => ({
 }));
 
 import { ProjectChatWorkbench } from "./project-chat-workbench";
+
+const TEST_RESOURCES = { "zh-Hans": { chat: zhChat } };
 
 const baseContext: ProjectChatContext = {
   project_id: "project-1",
@@ -113,9 +117,11 @@ function renderWorkbench() {
     },
   });
   return render(
-    <QueryClientProvider client={client}>
-      <ProjectChatWorkbench projectId="project-1" />
-    </QueryClientProvider>,
+    <I18nProvider locale="zh-Hans" resources={TEST_RESOURCES}>
+      <QueryClientProvider client={client}>
+        <ProjectChatWorkbench projectId="project-1" />
+      </QueryClientProvider>
+    </I18nProvider>,
   );
 }
 
