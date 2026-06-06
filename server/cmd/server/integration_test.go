@@ -593,11 +593,18 @@ func TestCommentsThroughRouter(t *testing.T) {
 		t.Fatalf("expected content 'Integration test comment', got '%s'", comment["content"])
 	}
 
+	time.Sleep(10 * time.Millisecond)
+
 	// Create second comment
 	resp = authRequest(t, "POST", "/api/issues/"+issueID+"/comments", map[string]any{
 		"content": "Second comment",
 		"type":    "comment",
 	})
+	if resp.StatusCode != 201 {
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		t.Fatalf("CreateComment second: expected 201, got %d: %s", resp.StatusCode, body)
+	}
 	resp.Body.Close()
 
 	// List comments
@@ -609,6 +616,9 @@ func TestCommentsThroughRouter(t *testing.T) {
 	readJSON(t, resp, &comments)
 	if len(comments) != 2 {
 		t.Fatalf("expected 2 comments, got %d", len(comments))
+	}
+	if comments[0]["content"] != "Second comment" || comments[1]["content"] != "Integration test comment" {
+		t.Fatalf("expected newest comment first, got %q then %q", comments[0]["content"], comments[1]["content"])
 	}
 
 	// Cleanup
